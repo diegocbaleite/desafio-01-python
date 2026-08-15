@@ -1,0 +1,13 @@
+{
+    "arquivos": {
+        "atendimentos": "data/atendimentos.csv",
+        "categorias": "data/categorias.json",
+        "observacoes": "data/observacoes.txt"
+    },
+    "saida": {
+        "csv": "output/atendimentos_processados.csv",
+        "json": "output/resumo.json",
+        "log": "output/erros.log",
+        "graficos": "output/graficos"
+    }
+}

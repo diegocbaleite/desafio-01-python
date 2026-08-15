@@ -1,0 +1,20 @@
+OBSERVACOES DOS ATENDIMENTOS
+
+Protocolos encontrados nas observações:
+ATD001 - contato realizado por telefone (65) 99999-1111
+ATD002 - usuário informou dificuldade para instalar o programa
+ATD003 - retorno solicitado pelo protocolo ATD003
+ATD004 - senha redefinida por telefone (65) 98888-2222
+ATD005 - acesso ao ambiente virtual normalizado
+ATD006 - instalação concluída
+ATD007 - atendimento precisa ser revisado
+ATD008 - usuário aguarda retorno
+ATD009 - atendimento duplicado identificado
+ATD010 - configuração do Python concluída
+ATD011 - aguardando informações do usuário
+ATD012 - tempo de atendimento precisa ser validado
+
+CONTATOS:
+suporte@ficdevia.com.br
+atendimento@ficdevia.com.br
+telefone: (65) 99999-3333
