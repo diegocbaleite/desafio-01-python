@@ -125,3 +125,80 @@ def processar_dados(
     df = remover_duplicidades(df)
 
     return df
+
+
+def calcular_indicadores(
+    df: pd.DataFrame,
+    total_original: int | None = None,
+) -> dict:
+    """Calcula os principais indicadores dos atendimentos."""
+
+    if total_original is None:
+        total_original = len(df)
+
+    total_processado = len(df)
+
+    quantidade_por_categoria = (
+        df["categoria"]
+        .value_counts()
+        .to_dict()
+    )
+
+    quantidade_por_status = (
+        df["status"]
+        .value_counts()
+        .to_dict()
+    )
+
+    tempo_medio = df["tempo_atendimento"].mean()
+
+    if quantidade_por_categoria:
+        categoria_mais_frequente = max(
+            quantidade_por_categoria,
+            key=quantidade_por_categoria.get,
+        )
+    else:
+        categoria_mais_frequente = None
+
+    registros_incompletos = df[
+        df["email"].eq("")
+        | df["data"].isna()
+        | df["tempo_atendimento"].isna()
+    ]
+
+    quantidade_incompletos = len(registros_incompletos)
+
+    duplicidades_removidas = (
+        total_original - total_processado
+    )
+
+    if total_original > 0:
+        percentual_incompletos = (
+            quantidade_incompletos / total_original
+        ) * 100
+    else:
+        percentual_incompletos = 0.0
+
+    return {
+        "resumo": {
+            "total_original": total_original,
+            "total_processado": total_processado,
+            "duplicidades_removidas": duplicidades_removidas,
+        },
+        "indicadores": {
+            "tempo_medio_atendimento": (
+                float(tempo_medio)
+                if not pd.isna(tempo_medio)
+                else 0.0
+            ),
+            "categoria_mais_frequente": categoria_mais_frequente,
+        },
+        "distribuicao": {
+            "por_categoria": quantidade_por_categoria,
+            "por_status": quantidade_por_status,
+        },
+        "qualidade_dados": {
+            "registros_incompletos": quantidade_incompletos,
+            "percentual_incompletos": percentual_incompletos,
+        },
+    }

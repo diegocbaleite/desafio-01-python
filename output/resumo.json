@@ -1,0 +1,62 @@
+{
+    "resumo": {
+        "total_original": 13,
+        "total_processado": 12,
+        "duplicidades_removidas": 1
+    },
+    "indicadores": {
+        "tempo_medio_atendimento": 35.55555555555556,
+        "categoria_mais_frequente": "Acesso ao AVA"
+    },
+    "distribuicao": {
+        "por_categoria": {
+            "Acesso ao AVA": 3,
+            "Instalação de Programas": 3,
+            "Configuração Python": 3,
+            "Problemas com Senha": 3
+        },
+        "por_status": {
+            "Resolvido": 7,
+            "Pendente": 3,
+            "Em Andamento": 2
+        }
+    },
+    "qualidade_dados": {
+        "registros_incompletos": 4,
+        "percentual_incompletos": 30.76923076923077,
+        "registros_com_problemas": 5,
+        "percentual_com_problemas": 38.46153846153847,
+        "detalhes_problemas": [
+            {
+                "protocolo": "ATD003",
+                "problemas": [
+                    "email inválido"
+                ]
+            },
+            {
+                "protocolo": "ATD004",
+                "problemas": [
+                    "email inválido"
+                ]
+            },
+            {
+                "protocolo": "ATD007",
+                "problemas": [
+                    "tempo de atendimento inválido"
+                ]
+            },
+            {
+                "protocolo": "ATD011",
+                "problemas": [
+                    "tempo de atendimento inválido"
+                ]
+            },
+            {
+                "protocolo": "ATD012",
+                "problemas": [
+                    "tempo de atendimento inválido"
+                ]
+            }
+        ]
+    }
+}

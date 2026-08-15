@@ -1,0 +1,13 @@
+protocolo,nome,email,categoria,data,tempo_atendimento,status
+ATD001,Ana Silva,ana.silva@email.com,Acesso ao AVA,2026-08-01,25.0,Resolvido
+ATD002,Bruno Costa,bruno@email.com,Instalação de Programas,2026-08-01,40.0,Resolvido
+ATD003,Carla Mendes,carla@email,Configuração Python,2026-08-02,35.0,Pendente
+ATD004,Diego Souza,,Problemas com Senha,2026-08-02,20.0,Resolvido
+ATD005,Eduardo Lima,eduardo@email.com,Acesso ao AVA,2026-08-03,15.0,Em Andamento
+ATD006,Fernanda Alves,fernanda@email.com,Instalação de Programas,2026-08-03,50.0,Resolvido
+ATD007,Gabriel Santos,gabriel@email.com,Configuração Python,2026-08-04,,Resolvido
+ATD008,Helena Rocha,helena@email.com,Problemas com Senha,2026-08-04,30.0,Pendente
+ATD009,Igor Martins,igor@email.com,Acesso ao AVA,2026-08-05,45.0,Resolvido
+ATD010,Julia Castro,julia@email.com,Configuração Python,2026-08-05,60.0,Em Andamento
+ATD011,Lucas Oliveira,lucas@email.com,Instalação de Programas,2026-08-06,,Pendente
+ATD012,Maria Santos,maria@email.com,Problemas com Senha,2026-08-06,,Resolvido

@@ -1,0 +1,18 @@
+============================================================
+LOG DE PROCESSAMENTO
+============================================================
+[INFO] Registros originais: 13
+[INFO] Registros processados: 12
+[INFO] Duplicidades removidas: 1
+[INFO] Registros com problemas: 5
+
+[WARNING] ATD003 - email inválido
+[WARNING] ATD004 - email inválido
+[WARNING] ATD007 - tempo de atendimento inválido
+[WARNING] ATD011 - tempo de atendimento inválido
+[WARNING] ATD012 - tempo de atendimento inválido
+
+[INFO] Registros incompletos após processamento: 4
+[INFO] Percentual de incompletos: 30.77%
+[INFO] Percentual de registros com problemas: 38.46%
+============================================================
