@@ -84,7 +84,10 @@ def validar_campos_obrigatorios(registro: pd.Series) -> list[str]:
     problemas = []
 
     # Campos simples obrigatórios
-    campos = ["protocolo", "nome", "categoria", "status"]
+    campos = ["protocolo", "categoria", "status"]
+    if "nome" in registro.index:
+        campos.append("nome")
+
     for campo in campos:
         if pd.isna(registro.get(campo)) or not str(registro.get(campo)).strip():
             problemas.append(f"{campo} vazio")
@@ -93,8 +96,9 @@ def validar_campos_obrigatorios(registro: pd.Series) -> list[str]:
     if not validar_email(registro.get("email")):
         problemas.append("email inválido")
 
-    # Validação de tempo
-    if not validar_tempo(registro.get("tempo_atendimento")):
+    # Validação de tempo (suporta tanto tempo_atendimento quanto tempo_minutos)
+    tempo = registro.get("tempo_atendimento") if "tempo_atendimento" in registro.index else registro.get("tempo_minutos")
+    if not validar_tempo(tempo):
         problemas.append("tempo de atendimento inválido")
 
     # Validação de data
