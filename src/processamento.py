@@ -3,6 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from src.validacao import validar_registro
+
 
 def limpar_texto(valor) -> str:
     """Remove espaços extras e padroniza o texto."""
@@ -33,6 +35,31 @@ def padronizar_textos(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def mapear_categoria_valor(val: str, configuracao_categorias: dict) -> str:
+    """Mapeia uma string de categoria para a versão padronizada do dicionário."""
+    if not val or pd.isna(val):
+        return ""
+
+    val_clean = str(val).strip()
+    val_lower = val_clean.lower()
+
+    dicionario = configuracao_categorias.get("categorias", configuracao_categorias)
+
+    for cat_oficial, sinonimos in dicionario.items():
+        if isinstance(sinonimos, str):
+            if val_lower == cat_oficial.lower() or val_lower == sinonimos.lower():
+                return sinonimos
+        elif isinstance(sinonimos, list):
+            if val_lower == cat_oficial.lower():
+                return cat_oficial
+            for sinonimo in sinonimos:
+                sinonimo_lower = sinonimo.lower()
+                if val_lower == sinonimo_lower or sinonimo_lower in val_lower or val_lower in sinonimo_lower:
+                    return cat_oficial
+
+    return val_clean
+
+
 def padronizar_categorias(
     df: pd.DataFrame,
     configuracao_categorias: dict,
@@ -40,19 +67,13 @@ def padronizar_categorias(
     """Padroniza as categorias usando categorias.json."""
     df = df.copy()
 
-    mapa = configuracao_categorias.get(
-        "categorias",
-        {},
-    )
-
-    df["categoria"] = (
-        df["categoria"]
-        .str.lower()
-        .map(mapa)
-        .fillna(df["categoria"])
-    )
+    if "categoria" in df.columns:
+        df["categoria"] = df["categoria"].apply(
+            lambda cat: mapear_categoria_valor(cat, configuracao_categorias)
+        )
 
     return df
+
 
 
 def converter_data(valor):
@@ -124,8 +145,9 @@ def remover_duplicidades(df: pd.DataFrame) -> pd.DataFrame:
 def processar_dados(
     df: pd.DataFrame,
     configuracao_categorias: dict,
+    descartar_invalidos: bool = True,
 ) -> pd.DataFrame:
-    """Executa todas as etapas de tratamento dos dados."""
+    """Executa todas as etapas de tratamento e filtragem dos dados."""
 
     df = padronizar_textos(df)
 
@@ -140,7 +162,15 @@ def processar_dados(
 
     df = remover_duplicidades(df)
 
+    if descartar_invalidos:
+        mascara_validos = []
+        for _, reg in df.iterrows():
+            valido, _ = validar_registro(reg)
+            mascara_validos.append(valido)
+        df = df[mascara_validos].reset_index(drop=True)
+
     return df
+
 
 
 def calcular_indicadores(

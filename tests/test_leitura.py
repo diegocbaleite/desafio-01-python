@@ -13,60 +13,42 @@ from src.leitura import (
 
 def test_verificar_arquivo_existente(tmp_path):
     arquivo = tmp_path / "teste.txt"
-    arquivo.write_text(
-        "conteudo",
-        encoding="utf-8",
-    )
-
+    arquivo.write_text("conteudo", encoding="utf-8")
     assert verificar_arquivo(arquivo) is True
 
 
 def test_verificar_arquivo_inexistente(tmp_path):
     arquivo = tmp_path / "nao_existe.txt"
-
     assert verificar_arquivo(arquivo) is False
 
 
 def test_ler_txt(tmp_path):
     arquivo = tmp_path / "observacoes.txt"
-
-    arquivo.write_text(
-        "ATD001 - atendimento realizado",
-        encoding="utf-8",
-    )
-
+    arquivo.write_text("ATD001 - atendimento realizado", encoding="utf-8")
     resultado = ler_txt(arquivo)
-
-    assert resultado == (
-        "ATD001 - atendimento realizado"
-    )
+    assert resultado == "ATD001 - atendimento realizado"
 
 
 def test_ler_json(tmp_path):
     arquivo = tmp_path / "config.json"
-
-    arquivo.write_text(
-        '{"nome": "teste"}',
-        encoding="utf-8",
-    )
-
+    arquivo.write_text('{"nome": "teste"}', encoding="utf-8")
     resultado = ler_json(arquivo)
-
-    assert resultado == {
-        "nome": "teste"
-    }
+    assert resultado == {"nome": "teste"}
 
 
-def test_ler_csv(tmp_path):
+def test_ler_csv_com_virgula(tmp_path):
     arquivo = tmp_path / "dados.csv"
+    arquivo.write_text("protocolo,nome\nATD001,Ana", encoding="utf-8")
+    resultado = ler_csv(arquivo, separador=",")
+    assert len(resultado) == 1
+    assert resultado.iloc[0]["protocolo"] == "ATD001"
+    assert resultado.iloc[0]["nome"] == "Ana"
 
-    arquivo.write_text(
-        "protocolo,nome\nATD001,Ana",
-        encoding="utf-8",
-    )
 
-    resultado = ler_csv(arquivo)
-
+def test_ler_csv_com_ponto_e_virgula(tmp_path):
+    arquivo = tmp_path / "dados.csv"
+    arquivo.write_text("protocolo;nome\nATD001;Ana", encoding="utf-8")
+    resultado = ler_csv(arquivo, separador=";")
     assert len(resultado) == 1
     assert resultado.iloc[0]["protocolo"] == "ATD001"
     assert resultado.iloc[0]["nome"] == "Ana"
@@ -75,7 +57,8 @@ def test_ler_csv(tmp_path):
 def test_extrair_protocolos():
     texto = """
     ATD001 - atendimento realizado.
-    ATD002 - instalação concluída.
+    SUP-2026-0003 solicitou retorno.
+    O aluno do protocolo 2026-0042 informou telefone.
     ATD003 - retorno solicitado pelo protocolo ATD003.
     """
 
@@ -83,7 +66,8 @@ def test_extrair_protocolos():
 
     assert resultado == [
         "ATD001",
-        "ATD002",
+        "SUP-2026-0003",
+        "2026-0042",
         "ATD003",
         "ATD003",
     ]
