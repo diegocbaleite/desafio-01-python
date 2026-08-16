@@ -92,6 +92,17 @@ Abaixo está o detalhamento técnico de como cada **Requisito Funcional (RF01 a 
 
 ---
 
+## ⚠️ Decisões Adotadas para Tratar Dados Inválidos
+
+Durante o projeto, foram adotadas as seguintes decisões técnicas para tratamento e governança de dados inconsistentes:
+
+1. **Auditoria Prévia Sem Perda de Rastreabilidade**: Cada linha do arquivo de entrada passa por auditoria (`validar_registro()`) antes do descarte. Os problemas (ex: e-mail sem TLD, data inválida, tempo fora de faixa) são gravados em `output/erros.log` com o número da linha e o protocolo correspondente.
+2. **Descarte Estrito do Arquivo Final Limpo**: Para garantir a integridade analítica, apenas registros totalmente limpos e válidos são salvos em `output/atendimentos_processados.csv` (cumprindo os RF04 e RF07).
+3. **Mapeamento Flexível por Sinônimos**: Categorias escritas com pequenas variações (ex: `"software"`, `"instalação"`, `"ambiente virtual"`) não são descartadas, mas sim mapeadas para suas respectivas categorias oficiais via `categorias.json`.
+4. **Isolamento de Erros e Tolerância a Falhas (RF08)**: Nenhuma exceção em nível de linha interrompe o pipeline CLI (`src/main.py`), garantindo que o processamento do restante do arquivo continue normalmente.
+
+---
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Python 3.14+**
