@@ -39,6 +39,59 @@ Desenvolver uma aplicação modular em linha de comando (CLI) em Python capaz de
 
 ---
 
+## 📌 Mapeamento da Implementação dos Requisitos Funcionais
+
+Abaixo está o detalhamento técnico de como cada **Requisito Funcional (RF01 a RF08)** foi implementado nos módulos da aplicação:
+
+### 🔹 RF01 — Inicialização
+- **Requisito**: O sistema deverá ser executado pelo comando `python -m src.main`.
+- **Implementação**: O módulo de entrada `src/main.py` contém a função de execução principal (`if __name__ == "__main__": main()`). A execução modular via `-m src.main` inicializa todas as etapas do pipeline em sequência a partir do diretório raiz.
+
+### 🔹 RF02 — Leitura dos Dados
+- **Requisito**: O sistema deverá ler os arquivos CSV, JSON e TXT indicados no arquivo de configuração.
+- **Implementação**: No módulo `src/leitura.py`, foram criadas as funções `ler_json()`, `ler_csv()` e `ler_txt()`. O arquivo `data/config.json` armazena os caminhos dinâmicos dos arquivos de entrada e o parâmetro `"separador_csv": ";"`. A função `ler_csv()` lê o arquivo utilizando o delimitador configurado com fallback automático para vírgula.
+
+### 🔹 RF03 — Validação
+- **Requisito**: Cada registro deverá ser classificado como válido ou inválido. A aplicação deverá apresentar o motivo da rejeição de registros inválidos.
+- **Implementação**: No módulo `src/validacao.py`, as funções `validar_email()`, `validar_tempo()`, `validar_data()`, `validar_protocolo()` e `validar_registro()` analisam cada linha do dataset. Se um registro for classificado como inválido, a lista de inconsistências encontradas (ex: `"email inválido"`, `"tempo de atendimento inválido"`) é associada ao registro para gravação detalhada no `erros.log`.
+
+### 🔹 RF04 — Tratamento dos Dados
+- **Requisito**: O sistema deverá remover espaços desnecessários, uniformizar maiúsculas e minúsculas, padronizar categorias, converter datas, tratar valores ausentes e eliminar duplicidades pelo protocolo.
+- **Implementação**: No módulo `src/processamento.py`:
+  - **Remover espaços e uniformizar caixa**: `limpar_texto()` e `padronizar_textos()` removem espaços desnecessários (`re.sub(r"\s+", " ", val)`) e ajustam a caixa (`.str.lower()` para e-mails e `.str.title()` para status).
+  - **Padronizar categorias**: `padronizar_categorias()` e `mapear_categoria_valor()` utilizam o dicionário de sinônimos/palavras-chave do `data/categorias.json` para mapear variações de escrita para os nomes oficiais das categorias.
+  - **Converter datas**: `padronizar_datas()` e `converter_data()` convertem múltiplos formatos (`YYYY-MM-DD`, `DD/MM/YYYY`, `YYYY/MM/DD`, `DD-MM-YYYY`) para o padrão ISO (`YYYY-MM-DD`).
+  - **Tratar valores ausentes / tempos**: `tratar_tempos()` converte tempos para valores numéricos e transforma valores negativos (`<= 0`) ou outliers (`> 480`) em nulos (`NaN`).
+  - **Eliminar duplicidades**: `remover_duplicidades()` utiliza `df.drop_duplicates(subset="protocolo", keep="first")`.
+  - **Descarte de inválidos**: `processar_dados()` filtra e remove linhas inconsistentes do dataset final `atendimentos_processados.csv`.
+
+### 🔹 RF05 — Análise Estatística
+- **Requisito**: O sistema deverá produzir indicadores estatísticos utilizando Pandas e NumPy.
+- **Implementação**: No módulo `src/processamento.py`, a função `calcular_indicadores()` utiliza **Pandas** para agrupamentos e distribuições por categoria/status (`value_counts()`) e **NumPy** para operações matemáticas vetoriais:
+  - `np.mean()` (Tempo médio);
+  - `np.median()` (Tempo mediano);
+  - `np.min()` / `np.max()` (Tempos mínimo e máximo);
+  - Normalização estatística do tempo médio referente ao limite de 480 minutos (`(tempo_medio / 480.0) * 100.0`).
+
+### 🔹 RF06 — Visualização
+- **Requisito**: O sistema deverá gerar e salvar pelo menos dois gráficos em formato PNG.
+- **Implementação**: No módulo `src/relatorios.py`, as funções `gerar_grafico_categorias()` e `gerar_grafico_tempos()` utilizam a biblioteca **Matplotlib** para renderizar e salvar os arquivos de imagem em `output/graficos/`:
+  - `atendimentos_por_categoria.png` (Gráfico de barras de distribuição por categoria);
+  - `distribuicao_tempos.png` (Histograma de distribuição dos tempos de atendimento).
+
+### 🔹 RF07 — Exportação
+- **Requisito**: O sistema deverá gerar um CSV com os dados tratados, um JSON com o resumo dos indicadores e um arquivo de log com os problemas encontrados.
+- **Implementação**: No módulo `src/relatorios.py`, as funções `salvar_csv()`, `salvar_json()` e `salvar_log()` exportam os resultados para o diretório `output/`:
+  - `output/atendimentos_processados.csv`: Dataset contendo apenas os dados limpos, normalizados e válidos.
+  - `output/resumo.json`: Arquivo JSON estruturado contendo todos os indicadores calculados.
+  - `output/erros.log`: Arquivo de texto formatado detalhando os erros, advertências e motivos de rejeição por linha/protocolo.
+
+### 🔹 RF08 — Tolerância a Falhas
+- **Requisito**: A ocorrência de uma linha inválida não poderá encerrar toda a aplicação.
+- **Implementação**: O pipeline em `src/main.py` percorre os registros de forma resiliente. Registros corrompidos ou com falhas de validação são devidamente isolados, auditados no `erros.log` e descartados da saída limpa sem interromper o fluxo de execução nem disparar exceções fatais que parem a aplicação CLI.
+
+---
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Python 3.14+**
@@ -136,37 +189,6 @@ A aplicação principal em linha de comando (CLI) é executada a partir do diret
 python -m src.main
 ```
 
-Durante a execução, o pipeline realiza:
-1. Verificação dos arquivos de entrada configurados em `config.json`;
-2. Leitura dos dados em CSV, JSON e TXT;
-3. Extração de contatos e protocolos das observações em TXT via Regex;
-4. Auditoria e classificação dos registros em válidos/inválidos;
-5. Processamento dos dados (normalização, remoção de duplicidades e filtragem de inválidos);
-6. Cálculo de estatísticas e indicadores com Pandas e NumPy;
-7. Exportação dos arquivos em `output/` (`atendimentos_processados.csv`, `resumo.json` e `erros.log`);
-8. Geração das imagens dos gráficos em PNG (`output/graficos/`);
-9. Exibição do relatório gerencial formatado no terminal.
-
----
-
-## 📊 Dashboard Interativo (Streamlit)
-
-Para iniciar a interface gráfica interativa desenvolvida em Streamlit:
-
-```bash
-python -m streamlit run src/dashboard.py
-```
-
-Acesse o endereço exibido no terminal (por padrão: `http://localhost:8501`).
-
-O dashboard oferece:
-- Métricas em tempo real (Total de atendimentos, Resolvidos, Pendentes, Em Andamento);
-- Indicadores de desempenho de tempo (Média, Mediana, Mínimo e Máximo);
-- Filtros dinâmicos por categoria, status, período e busca por texto;
-- Tabela interativa de atendimentos com opção de download dos dados filtrados em CSV;
-- Gráficos visuais por categoria e status;
-- Indicadores de qualidade de dados.
-
 ---
 
 ## 🧪 Testes Automatizados (Pytest)
@@ -200,16 +222,51 @@ O projeto adotou uma estratégia de desenvolvimento modular com git branches por
 
 ---
 
-## 🤖 Uso de Ferramentas de IA
+## 🤖 Uso de ferramentas de IA
 
-No desenvolvimento do projeto foi utilizada assistência de IA generativa (ChatGPT e Gemini Antigravity) como apoio ao aprendizado e par programação:
+Durante o desenvolvimento foi utilizada a ferramenta ChatGPT como apoio ao processo de desenvolvimento.
 
-- Auxílio na interpretação de mensagens de erro do Python/Pandas;
-- Sugestões para estruturação de expressões regulares;
-- Apoio na organização dos testes unitários com Pytest;
-- Revisão da documentação e alinhamento aos requisitos do desafio.
+### Finalidades
 
-Todas as sugestões foram analisadas, testadas e adaptadas pelos alunos, mantendo a responsabilidade integral pelo código e entrega final.
+A ferramenta foi utilizada para:
+
+- Interpretar mensagens de erro;
+- Auxiliar na compreensão de bibliotecas Python;
+- Sugerir testes;
+- Revisar a organização do código;
+- Auxiliar na documentação;
+- Auxiliar na organização do fluxo de Git e GitHub;
+- Auxiliar na implementação e revisão do dashboard;
+- Auxiliar na análise e correção de problemas.
+
+### Exemplos de prompts utilizados
+
+- "Me explique esse erro do Python."
+- "Como posso organizar esse projeto em módulos?"
+- "Como testar essa função com pytest?"
+- "Como implementar filtros no dashboard?"
+- "Como adicionar exportação dos dados filtrados?"
+- "Revise a organização deste código."
+- "Explique passo a passo como fazer o merge das branches."
+- "Pode fazer uma revisão do projeto?"
+- "Vamos corrigir esse problema."
+- "Complete essa função."
+
+### Participação dos discentes
+
+As sugestões fornecidas pela ferramenta foram analisadas, testadas e adaptadas pelos discentes.
+
+Os discentes foram responsáveis por:
+
+- Implementar e modificar o código;
+- Executar os comandos e testes;
+- Analisar os resultados;
+- Corrigir erros encontrados;
+- Validar o funcionamento do pipeline;
+- Decidir quais sugestões seriam incorporadas;
+- Organizar os arquivos do projeto;
+- Realizar os commits e operações de Git;
+- Validar a execução final do sistema e do dashboard.
 
 ---
 
