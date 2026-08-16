@@ -1,5 +1,17 @@
+# Ambiente virtual
 .venv/
+
+# Python
 __pycache__/
 *.pyc
-.vscode/
+*.pyo
+
+# Testes
 .pytest_cache/
+
+# IDE
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
