@@ -50,6 +50,9 @@ O objetivo do projeto é construir uma aplicação completa de análise de dados
 - Matplotlib
 - Streamlit
 - Pytest
+- Regex
+- Git
+- GitHub
 
 ---
 
@@ -82,6 +85,7 @@ desafio-01-python/
 │   └── dashboard.py
 │
 ├── tests/
+│   ├── test_leitura.py
 │   ├── test_pipeline.py
 │   ├── test_processamento.py
 │   └── test_validacao.py
@@ -100,8 +104,6 @@ As configurações utilizadas pelo sistema ficam armazenadas no arquivo:
 ```text
 data/config.json
 ```
-
-O arquivo define os arquivos de entrada e os arquivos de saída utilizados pelo sistema.
 
 Exemplo:
 
@@ -125,7 +127,7 @@ Exemplo:
 
 ## 🐍 Criação do ambiente virtual
 
-No Windows PowerShell, execute:
+No Windows PowerShell:
 
 ```powershell
 python -m venv .venv
@@ -155,7 +157,7 @@ Com o ambiente virtual ativado:
 python -m pip install -r requirements.txt
 ```
 
-As principais bibliotecas utilizadas são:
+Principais bibliotecas:
 
 - Pandas;
 - NumPy;
@@ -167,7 +169,7 @@ As principais bibliotecas utilizadas são:
 
 ## ▶️ Execução do sistema
 
-A aplicação principal deve ser executada com:
+Execute o pipeline principal:
 
 ```powershell
 python -m src.main
@@ -177,12 +179,13 @@ Durante a execução, o sistema:
 
 1. Verifica os arquivos necessários;
 2. Lê os dados;
-3. Valida os registros;
-4. Processa os dados;
-5. Calcula os indicadores;
-6. Salva os resultados;
-7. Gera os gráficos;
-8. Exibe o relatório no terminal.
+3. Extrai informações das observações;
+4. Valida os registros;
+5. Processa os dados;
+6. Calcula os indicadores;
+7. Salva os resultados;
+8. Gera os gráficos;
+9. Exibe o relatório no terminal.
 
 ---
 
@@ -190,13 +193,13 @@ Durante a execução, o sistema:
 
 O projeto possui um dashboard desenvolvido com Streamlit.
 
-Para executá-lo:
+Execute:
 
 ```powershell
 python -m streamlit run src/dashboard.py
 ```
 
-Depois acesse no navegador:
+Depois acesse:
 
 ```text
 http://localhost:8501
@@ -216,26 +219,35 @@ O dashboard apresenta:
 - Gráficos;
 - Indicadores de qualidade dos dados;
 - Registros com problemas;
-- Exportação dos atendimentos filtrados em CSV.
+- Exportação dos atendimentos filtrados em CSV;
+- Informações do processamento.
 
 ---
 
 ## 🧪 Testes automatizados
 
-Os testes são executados utilizando Pytest:
+Execute:
 
 ```powershell
 python -m pytest
 ```
 
-Durante a validação do projeto foram obtidos:
+Resultado da validação final:
 
 ```text
-24 passed
+33 passed
 ```
 
 Os testes abrangem:
 
+- Leitura de arquivos;
+- Leitura de CSV;
+- Leitura de JSON;
+- Leitura de TXT;
+- Verificação de arquivos;
+- Extração de protocolos;
+- Extração de telefones;
+- Extração de e-mails;
 - Validação dos dados;
 - Processamento dos registros;
 - Pipeline de processamento.
@@ -244,10 +256,12 @@ Os testes abrangem:
 
 ## 🧹 Tratamento dos dados
 
-O sistema realiza diferentes etapas de tratamento, incluindo:
+O sistema realiza:
 
 - Remoção de espaços desnecessários;
 - Padronização de textos;
+- Padronização de e-mails;
+- Padronização de status;
 - Padronização das categorias;
 - Conversão de datas;
 - Tratamento de valores ausentes;
@@ -257,19 +271,38 @@ O sistema realiza diferentes etapas de tratamento, incluindo:
 - Identificação de registros duplicados;
 - Remoção de duplicidades pelo protocolo.
 
-As categorias utilizadas pelo sistema são definidas no arquivo:
+---
+
+## 🗂️ Categorias
+
+As categorias são definidas em:
 
 ```text
 data/categorias.json
 ```
 
-As categorias configuradas incluem:
+Categorias utilizadas:
 
 - Acesso ao AVA;
-- Instalação de programas;
-- Configuração do Python;
-- Senha;
-- Execução de atividades.
+- Instalação de Programas;
+- Configuração Python;
+- Problemas com Senha.
+
+Exemplo:
+
+```json
+{
+    "categorias": {
+        "acesso ao ava": "Acesso ao AVA",
+        "acesso ao ambiente virtual": "Acesso ao AVA",
+        "instalação de programas": "Instalação de Programas",
+        "instalacao de programas": "Instalação de Programas",
+        "configuração python": "Configuração Python",
+        "configuracao python": "Configuração Python",
+        "problemas com senha": "Problemas com Senha"
+    }
+}
+```
 
 ---
 
@@ -277,13 +310,17 @@ As categorias configuradas incluem:
 
 Registros com problemas não interrompem a execução da aplicação.
 
-Os problemas encontrados durante o processamento são registrados em:
+São identificados problemas como:
+
+- Campos obrigatórios vazios;
+- E-mail inválido;
+- Tempo de atendimento inválido.
+
+Os problemas são registrados em:
 
 ```text
 output/erros.log
 ```
-
-Dessa forma, uma linha inválida não impede o processamento dos demais registros.
 
 ---
 
@@ -297,40 +334,55 @@ data/observacoes.txt
 
 é utilizado como fonte adicional de informações.
 
-O sistema utiliza expressões regulares para identificar padrões presentes nas observações, como protocolos e telefones.
+O sistema utiliza expressões regulares para identificar:
 
-O arquivo de observações contém exemplos de contatos associados a protocolos de atendimento.
+- Protocolos;
+- Telefones;
+- E-mails.
+
+Resultado da execução:
+
+```text
+Protocolos encontrados nas observações: 13
+Telefones encontrados nas observações: 3
+E-mails encontrados nas observações: 2
+```
 
 ---
 
 ## 📈 Indicadores gerados
 
-O sistema produz indicadores como:
+O sistema produz:
 
 - Quantidade total de atendimentos;
-- Quantidade de atendimentos por categoria;
-- Quantidade de atendimentos por status;
-- Tempo médio de atendimento;
-- Categoria com maior número de solicitações;
-- Quantidade de registros incompletos;
+- Quantidade por categoria;
+- Quantidade por status;
+- Tempo médio;
+- Tempo mediano;
+- Tempo mínimo;
+- Tempo máximo;
+- Tempo médio normalizado;
+- Categoria mais frequente;
+- Registros incompletos;
 - Percentual de registros incompletos;
-- Quantidade de registros com problemas;
+- Registros com problemas;
 - Percentual de registros com problemas;
-- Quantidade de duplicidades removidas.
+- Duplicidades removidas;
+- Protocolos encontrados;
+- Telefones encontrados;
+- E-mails encontrados.
 
 ---
 
 ## 📊 Gráficos
 
-Os gráficos são gerados utilizando Matplotlib.
-
-Os arquivos são armazenados em:
+Os gráficos são gerados com Matplotlib e armazenados em:
 
 ```text
 output/graficos/
 ```
 
-Gráficos gerados:
+Arquivos:
 
 ```text
 atendimentos_por_categoria.png
@@ -341,13 +393,7 @@ tempos_atendimento.png
 
 ## 📤 Arquivos de saída
 
-Após a execução do pipeline, os resultados são armazenados no diretório:
-
-```text
-output/
-```
-
-São gerados:
+Após a execução:
 
 ```text
 output/
@@ -359,17 +405,23 @@ output/
     └── tempos_atendimento.png
 ```
 
-O arquivo `atendimentos_processados.csv` contém os registros tratados.
+### atendimentos_processados.csv
 
-O arquivo `resumo.json` contém o resumo dos indicadores.
+Contém os registros tratados e padronizados.
 
-O arquivo `erros.log` registra problemas encontrados durante o processamento.
+### resumo.json
+
+Contém os indicadores calculados.
+
+### erros.log
+
+Registra os problemas encontrados durante a validação e processamento.
 
 ---
 
 ## 📋 Resultado da execução
 
-Durante a validação do projeto foram obtidos os seguintes resultados:
+Resultado final:
 
 ```text
 Registros originais: 13
@@ -394,20 +446,43 @@ Pendente: 3
 Em Andamento: 2
 ```
 
-### Indicadores
+### Indicadores de tempo
 
 ```text
 Tempo médio: 35.56 minutos
-Categoria mais frequente: Acesso ao AVA
+Tempo mediano: 35.00 minutos
+Tempo mínimo: 15.00 minutos
+Tempo máximo: 60.00 minutos
+Tempo médio normalizado: 7.41%
+```
+
+### Categoria mais frequente
+
+```text
+Acesso ao AVA
+```
+
+### Qualidade dos dados
+
+```text
 Registros incompletos: 4
 Percentual de incompletos: 30.77%
+
+Registros com problemas: 5
+Percentual com problemas: 38.46%
+```
+
+### Informações extraídas
+
+```text
+Protocolos encontrados: 13
+Telefones encontrados: 3
+E-mails encontrados: 2
 ```
 
 ---
 
 ## 🔄 Fluxo de processamento
-
-O processamento dos dados segue as seguintes etapas:
 
 ```text
 Arquivos de entrada
@@ -416,19 +491,25 @@ Arquivos de entrada
    Leitura dos dados
         │
         ▼
+Extração de informações
+        │
+        ▼
       Validação
         │
         ▼
-  Limpeza e padronização
+Limpeza e padronização
         │
         ▼
- Tratamento de duplicidades
+Tratamento de tempos
         │
         ▼
- Cálculo dos indicadores
+Tratamento de duplicidades
         │
         ▼
- Geração de relatórios
+Cálculo dos indicadores
+        │
+        ▼
+Geração de relatórios
         │
         ├──────────────► CSV
         │
@@ -438,6 +519,68 @@ Arquivos de entrada
         │
         └──────────────► Gráficos PNG
 ```
+
+---
+
+## 🧩 Organização dos módulos
+
+### src/leitura.py
+
+Responsável pela leitura dos arquivos e extração utilizando Regex.
+
+Funções:
+
+- Leitura de CSV;
+- Leitura de JSON;
+- Leitura de TXT;
+- Verificação de arquivos;
+- Extração de protocolos;
+- Extração de telefones;
+- Extração de e-mails.
+
+### src/validacao.py
+
+Responsável pela validação dos registros.
+
+Realiza:
+
+- Validação de e-mail;
+- Validação de tempo;
+- Validação de campos obrigatórios;
+- Identificação dos problemas.
+
+### src/processamento.py
+
+Responsável pelo tratamento e análise dos dados.
+
+Realiza:
+
+- Limpeza de textos;
+- Padronização de categorias;
+- Conversão de datas;
+- Tratamento de tempos;
+- Remoção de duplicidades;
+- Cálculo dos indicadores.
+
+### src/relatorios.py
+
+Responsável pela geração dos resultados.
+
+Realiza:
+
+- Salvamento do CSV;
+- Salvamento do JSON;
+- Salvamento do log;
+- Geração do resumo;
+- Geração dos gráficos.
+
+### src/main.py
+
+Responsável pela execução do pipeline completo.
+
+### src/dashboard.py
+
+Responsável pela interface visual desenvolvida com Streamlit.
 
 ---
 
@@ -455,17 +598,19 @@ O projeto utiliza Git e GitHub para controle de versão.
 
 Durante o desenvolvimento foram utilizadas branches para separar funcionalidades e posteriormente integrar as alterações.
 
-Após a validação, as funcionalidades foram consolidadas na branch principal:
+As funcionalidades foram consolidadas na branch:
 
 ```text
 main
 ```
 
+O projeto foi sincronizado com o repositório remoto do GitHub.
+
 ---
 
 ## 🤖 Uso de ferramentas de IA
 
-Durante o desenvolvimento do projeto foi utilizada a ferramenta **ChatGPT** como apoio ao processo de desenvolvimento.
+Durante o desenvolvimento foi utilizada a ferramenta ChatGPT como apoio ao processo de desenvolvimento.
 
 ### Finalidades
 
@@ -477,11 +622,10 @@ A ferramenta foi utilizada para:
 - Revisar a organização do código;
 - Auxiliar na documentação;
 - Auxiliar na organização do fluxo de Git e GitHub;
-- Auxiliar na implementação e revisão do dashboard.
+- Auxiliar na implementação e revisão do dashboard;
+- Auxiliar na análise e correção de problemas.
 
 ### Exemplos de prompts utilizados
-
-Alguns exemplos de solicitações realizadas:
 
 - "Me explique esse erro do Python."
 - "Como posso organizar esse projeto em módulos?"
@@ -490,18 +634,90 @@ Alguns exemplos de solicitações realizadas:
 - "Como adicionar exportação dos dados filtrados?"
 - "Revise a organização deste código."
 - "Explique passo a passo como fazer o merge das branches."
+- "Pode fazer uma revisão do projeto?"
+- "Vamos corrigir esse problema."
+- "Complete essa função."
 
 ### Participação dos discentes
 
 As sugestões fornecidas pela ferramenta foram analisadas, testadas e adaptadas pelos discentes.
 
-O código foi executado e validado durante o desenvolvimento por meio dos testes automatizados, do pipeline principal e da execução do dashboard.
+Os discentes foram responsáveis por:
+
+- Implementar e modificar o código;
+- Executar os comandos e testes;
+- Analisar os resultados;
+- Corrigir erros encontrados;
+- Validar o funcionamento do pipeline;
+- Decidir quais sugestões seriam incorporadas;
+- Organizar os arquivos do projeto;
+- Realizar os commits e operações de Git;
+- Validar a execução final do sistema e do dashboard.
+
+---
+
+## 🧪 Validação final
+
+### Testes
+
+```powershell
+python -m pytest
+```
+
+Resultado:
+
+```text
+33 passed
+```
+
+### Pipeline
+
+```powershell
+python -m src.main
+```
+
+Resultado:
+
+```text
+Processamento concluído com sucesso!
+```
+
+### Dashboard
+
+```powershell
+python -m streamlit run src/dashboard.py
+```
+
+### Git
+
+```powershell
+git status
+```
+
+Resultado esperado:
+
+```text
+nothing to commit, working tree clean
+```
+
+### GitHub
+
+```powershell
+git push origin main
+```
+
+Resultado final:
+
+```text
+Everything up-to-date
+```
 
 ---
 
 ## 👨‍💻 Autores
 
-**Diego Assunção Leite**  
+**Diego Assunção Leite**
+
 **Leonardo de Oliveira Ramos**
 
 **Turma:** Vespertino
