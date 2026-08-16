@@ -18,8 +18,9 @@ def test_arquivos_de_saida_existentes():
             raiz
             / "output"
             / "graficos"
-            / "tempos_atendimento.png"
+            / "distribuicao_tempos.png"
         ),
+
     ]
 
     for arquivo in arquivos:

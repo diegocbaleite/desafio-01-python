@@ -393,7 +393,7 @@ def main():
     gerar_grafico_tempos(
         df_processado,
         caminho_graficos
-        / "tempos_atendimento.png",
+        / "distribuicao_tempos.png",
     )
 
     # ---------------------------------------------------------
@@ -433,8 +433,9 @@ def main():
 
     print(
         "- "
-        f"{caminho_graficos / 'tempos_atendimento.png'}"
+        f"{caminho_graficos / 'distribuicao_tempos.png'}"
     )
+
 
     print(
         "\nProcessamento concluído com sucesso!"
