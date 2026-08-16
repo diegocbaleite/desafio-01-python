@@ -33,6 +33,31 @@ def padronizar_textos(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def mapear_categoria_valor(val: str, configuracao_categorias: dict) -> str:
+    """Mapeia uma string de categoria para a versão padronizada do dicionário."""
+    if not val or pd.isna(val):
+        return ""
+
+    val_clean = str(val).strip()
+    val_lower = val_clean.lower()
+
+    dicionario = configuracao_categorias.get("categorias", configuracao_categorias)
+
+    for cat_oficial, sinonimos in dicionario.items():
+        if isinstance(sinonimos, str):
+            if val_lower == cat_oficial.lower() or val_lower == sinonimos.lower():
+                return sinonimos
+        elif isinstance(sinonimos, list):
+            if val_lower == cat_oficial.lower():
+                return cat_oficial
+            for sinonimo in sinonimos:
+                sinonimo_lower = sinonimo.lower()
+                if val_lower == sinonimo_lower or sinonimo_lower in val_lower or val_lower in sinonimo_lower:
+                    return cat_oficial
+
+    return val_clean
+
+
 def padronizar_categorias(
     df: pd.DataFrame,
     configuracao_categorias: dict,
@@ -40,19 +65,13 @@ def padronizar_categorias(
     """Padroniza as categorias usando categorias.json."""
     df = df.copy()
 
-    mapa = configuracao_categorias.get(
-        "categorias",
-        {},
-    )
-
-    df["categoria"] = (
-        df["categoria"]
-        .str.lower()
-        .map(mapa)
-        .fillna(df["categoria"])
-    )
+    if "categoria" in df.columns:
+        df["categoria"] = df["categoria"].apply(
+            lambda cat: mapear_categoria_valor(cat, configuracao_categorias)
+        )
 
     return df
+
 
 
 def converter_data(valor):

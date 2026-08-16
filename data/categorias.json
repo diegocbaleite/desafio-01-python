@@ -1,11 +1,7 @@
 {
-    "categorias": {
-        "acesso ao ava": "Acesso ao AVA",
-        "acesso ao ambiente virtual": "Acesso ao AVA",
-        "instalação de programas": "Instalação de Programas",
-        "instalacao de programas": "Instalação de Programas",
-        "configuração python": "Configuração Python",
-        "configuracao python": "Configuração Python",
-        "problemas com senha": "Problemas com Senha"
-    }
+  "Acesso ao AVA": ["ava", "acesso ava", "ambiente virtual", "acesso ao ambiente virtual"],
+  "Instalação de programas": ["instalacao", "instalação", "instalar programa", "software"],
+  "Configuração do Python": ["python", "config python", "configuração python", "ambiente python"],
+  "Senha": ["senha", "password", "redefinir senha", "esqueci a senha", "problemas com senha"],
+  "Execução de atividades": ["atividade", "execucao", "execução", "erro na atividade"]
 }

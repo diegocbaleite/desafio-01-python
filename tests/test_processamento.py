@@ -80,10 +80,8 @@ def test_padronizar_categorias():
     df = criar_dataframe()
 
     configuracao = {
-        "categorias": {
-            "acesso ao ava": "Acesso ao AVA",
-            "instalação de programas": "Instalação de Programas",
-        }
+        "Acesso ao AVA": ["acesso ao ava", "ava"],
+        "Instalação de programas": ["instalação de programas", "instalacao"],
     }
 
     resultado = padronizar_textos(df)
@@ -95,8 +93,9 @@ def test_padronizar_categorias():
     assert resultado.loc[0, "categoria"] == "Acesso ao AVA"
     assert (
         resultado.loc[1, "categoria"]
-        == "Instalação de Programas"
+        == "Instalação de programas"
     )
+
 
 
 def test_converter_data_iso():
