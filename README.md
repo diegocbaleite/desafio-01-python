@@ -50,8 +50,6 @@ O objetivo do projeto é construir uma aplicação completa de análise de dados
 - Matplotlib
 - Streamlit
 - Pytest
-- Git
-- GitHub
 
 ---
 
