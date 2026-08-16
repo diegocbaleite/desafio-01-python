@@ -63,25 +63,104 @@ def carregar_atendimentos() -> pd.DataFrame:
 
 
 # =========================================================
+# Funções auxiliares
+# =========================================================
+
+def calcular_indicadores_filtrados(
+    df: pd.DataFrame,
+) -> dict:
+    """Calcula indicadores usando apenas os dados filtrados."""
+
+    total = len(df)
+
+    resolvidos = int(
+        (df["status"] == "Resolvido").sum()
+    )
+
+    pendentes = int(
+        (df["status"] == "Pendente").sum()
+    )
+
+    em_andamento = int(
+        (df["status"] == "Em Andamento").sum()
+    )
+
+    tempos = pd.to_numeric(
+        df["tempo_atendimento"],
+        errors="coerce",
+    ).dropna()
+
+    if tempos.empty:
+
+        tempo_medio = 0.0
+        tempo_mediano = 0.0
+        tempo_minimo = 0.0
+        tempo_maximo = 0.0
+
+    else:
+
+        tempo_medio = float(tempos.mean())
+        tempo_mediano = float(tempos.median())
+        tempo_minimo = float(tempos.min())
+        tempo_maximo = float(tempos.max())
+
+    if total > 0:
+
+        categorias = (
+            df["categoria"]
+            .value_counts()
+        )
+
+        if not categorias.empty:
+            categoria_mais_frequente = categorias.index[0]
+        else:
+            categoria_mais_frequente = "N/A"
+
+    else:
+
+        categoria_mais_frequente = "N/A"
+
+    return {
+        "total": total,
+        "resolvidos": resolvidos,
+        "pendentes": pendentes,
+        "em_andamento": em_andamento,
+        "tempo_medio": tempo_medio,
+        "tempo_mediano": tempo_mediano,
+        "tempo_minimo": tempo_minimo,
+        "tempo_maximo": tempo_maximo,
+        "categoria_mais_frequente": (
+            categoria_mais_frequente
+        ),
+    }
+
+
+# =========================================================
 # Título
 # =========================================================
 
-st.title("📊 Sistema de Análise de Atendimentos")
+st.title(
+    "📊 Sistema de Análise de Atendimentos"
+)
 
 st.caption(
-    "Dashboard baseado nos resultados do pipeline de processamento."
+    "Dashboard interativo baseado nos resultados "
+    "do pipeline de processamento."
 )
 
 
 # =========================================================
-# Carregar dados
+# Carregamento dos dados
 # =========================================================
 
 try:
+
     dados = carregar_dados()
+
     df = carregar_atendimentos()
 
 except FileNotFoundError as erro:
+
     st.error(str(erro))
 
     st.info(
@@ -92,7 +171,7 @@ except FileNotFoundError as erro:
 
 
 # =========================================================
-# Organizar indicadores
+# Organização dos dados
 # =========================================================
 
 resumo = dados["resumo"]
@@ -102,6 +181,21 @@ indicadores = dados["indicadores"]
 distribuicao = dados["distribuicao"]
 
 qualidade = dados["qualidade_dados"]
+
+
+# =========================================================
+# Preparação do DataFrame
+# =========================================================
+
+df["data"] = pd.to_datetime(
+    df["data"],
+    errors="coerce",
+)
+
+df["tempo_atendimento"] = pd.to_numeric(
+    df["tempo_atendimento"],
+    errors="coerce",
+)
 
 
 # =========================================================
@@ -116,10 +210,210 @@ if st.button("🔄 Atualizar dados"):
 
 
 # =========================================================
+# Filtros
+# =========================================================
+
+st.subheader("🔎 Filtros")
+
+
+categorias_disponiveis = sorted(
+    df["categoria"]
+    .dropna()
+    .unique()
+    .tolist()
+)
+
+status_disponiveis = sorted(
+    df["status"]
+    .dropna()
+    .unique()
+    .tolist()
+)
+
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
+    categorias_selecionadas = st.multiselect(
+        "📂 Filtrar por categoria",
+        options=categorias_disponiveis,
+        default=categorias_disponiveis,
+    )
+
+
+with col2:
+
+    status_selecionados = st.multiselect(
+        "📌 Filtrar por status",
+        options=status_disponiveis,
+        default=status_disponiveis,
+    )
+
+
+# =========================================================
+# Filtro de período
+# =========================================================
+
+col3, col4 = st.columns(2)
+
+
+data_minima = df["data"].min()
+data_maxima = df["data"].max()
+
+
+with col3:
+
+    if pd.notna(data_minima) and pd.notna(data_maxima):
+
+        periodo = st.date_input(
+            "📅 Período",
+            value=(
+                data_minima.date(),
+                data_maxima.date(),
+            ),
+        )
+
+    else:
+
+        periodo = None
+
+
+# =========================================================
+# Busca
+# =========================================================
+
+with col4:
+
+    busca = st.text_input(
+        "🔍 Buscar por protocolo ou nome",
+        placeholder="Digite o protocolo ou nome...",
+    )
+
+
+# =========================================================
+# Botão limpar filtros
+# =========================================================
+
+if st.button("🧹 Limpar filtros"):
+
+    st.rerun()
+
+
+# =========================================================
+# Aplicação dos filtros
+# =========================================================
+
+df_filtrado = df.copy()
+
+
+# ---------------------------------------------------------
+# Categoria
+# ---------------------------------------------------------
+
+df_filtrado = df_filtrado[
+    df_filtrado["categoria"].isin(
+        categorias_selecionadas
+    )
+]
+
+
+# ---------------------------------------------------------
+# Status
+# ---------------------------------------------------------
+
+df_filtrado = df_filtrado[
+    df_filtrado["status"].isin(
+        status_selecionados
+    )
+]
+
+
+# ---------------------------------------------------------
+# Período
+# ---------------------------------------------------------
+
+if periodo and len(periodo) == 2:
+
+    data_inicio, data_fim = periodo
+
+    df_filtrado = df_filtrado[
+        (
+            df_filtrado["data"].dt.date
+            >= data_inicio
+        )
+        &
+        (
+            df_filtrado["data"].dt.date
+            <= data_fim
+        )
+    ]
+
+
+# ---------------------------------------------------------
+# Busca
+# ---------------------------------------------------------
+
+if busca.strip():
+
+    termo = busca.strip().lower()
+
+    filtro_busca = (
+        df_filtrado["protocolo"]
+        .astype(str)
+        .str.lower()
+        .str.contains(
+            termo,
+            na=False,
+        )
+        |
+        df_filtrado["nome"]
+        .astype(str)
+        .str.lower()
+        .str.contains(
+            termo,
+            na=False,
+        )
+    )
+
+    df_filtrado = df_filtrado[
+        filtro_busca
+    ]
+
+
+# =========================================================
+# Indicadores filtrados
+# =========================================================
+
+indicadores_filtrados = (
+    calcular_indicadores_filtrados(
+        df_filtrado
+    )
+)
+
+
+# =========================================================
+# Resultado dos filtros
+# =========================================================
+
+st.info(
+    f"📌 Registros encontrados: "
+    f"{len(df_filtrado)} de {len(df)}"
+)
+
+
+st.divider()
+
+
+# =========================================================
 # Indicadores principais
 # =========================================================
 
-st.subheader("📊 Indicadores principais")
+st.subheader(
+    "📊 Indicadores principais"
+)
+
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -128,7 +422,7 @@ with col1:
 
     st.metric(
         "Atendimentos",
-        resumo["total_processado"],
+        indicadores_filtrados["total"],
     )
 
 
@@ -136,10 +430,7 @@ with col2:
 
     st.metric(
         "Resolvidos",
-        distribuicao["por_status"].get(
-            "Resolvido",
-            0,
-        ),
+        indicadores_filtrados["resolvidos"],
     )
 
 
@@ -147,10 +438,7 @@ with col3:
 
     st.metric(
         "Pendentes",
-        distribuicao["por_status"].get(
-            "Pendente",
-            0,
-        ),
+        indicadores_filtrados["pendentes"],
     )
 
 
@@ -158,10 +446,9 @@ with col4:
 
     st.metric(
         "Em andamento",
-        distribuicao["por_status"].get(
-            "Em Andamento",
-            0,
-        ),
+        indicadores_filtrados[
+            "em_andamento"
+        ],
     )
 
 
@@ -172,7 +459,10 @@ st.divider()
 # Indicadores de desempenho
 # =========================================================
 
-st.subheader("⏱️ Indicadores de desempenho")
+st.subheader(
+    "⏱️ Indicadores de desempenho"
+)
+
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -181,7 +471,10 @@ with col1:
 
     st.metric(
         "Tempo médio",
-        f"{indicadores['tempo_medio_atendimento']:.2f} min",
+        (
+            f"{indicadores_filtrados['tempo_medio']:.2f}"
+            " min"
+        ),
     )
 
 
@@ -189,7 +482,10 @@ with col2:
 
     st.metric(
         "Tempo mediano",
-        f"{indicadores['tempo_mediano_atendimento']:.2f} min",
+        (
+            f"{indicadores_filtrados['tempo_mediano']:.2f}"
+            " min"
+        ),
     )
 
 
@@ -197,7 +493,10 @@ with col3:
 
     st.metric(
         "Tempo mínimo",
-        f"{indicadores['tempo_minimo_atendimento']:.2f} min",
+        (
+            f"{indicadores_filtrados['tempo_minimo']:.2f}"
+            " min"
+        ),
     )
 
 
@@ -205,7 +504,10 @@ with col4:
 
     st.metric(
         "Tempo máximo",
-        f"{indicadores['tempo_maximo_atendimento']:.2f} min",
+        (
+            f"{indicadores_filtrados['tempo_maximo']:.2f}"
+            " min"
+        ),
     )
 
 
@@ -216,7 +518,10 @@ st.divider()
 # Outros indicadores
 # =========================================================
 
-st.subheader("📌 Outros indicadores")
+st.subheader(
+    "📌 Outros indicadores"
+)
+
 
 col1, col2 = st.columns(2)
 
@@ -225,7 +530,9 @@ with col1:
 
     st.metric(
         "Categoria mais frequente",
-        indicadores["categoria_mais_frequente"],
+        indicadores_filtrados[
+            "categoria_mais_frequente"
+        ],
     )
 
 
@@ -241,79 +548,18 @@ st.divider()
 
 
 # =========================================================
-# Filtros
-# =========================================================
-
-st.subheader("🔎 Filtros")
-
-col1, col2 = st.columns(2)
-
-
-categorias_disponiveis = sorted(
-    df["categoria"]
-    .dropna()
-    .unique()
-    .tolist()
-)
-
-
-status_disponiveis = sorted(
-    df["status"]
-    .dropna()
-    .unique()
-    .tolist()
-)
-
-
-with col1:
-
-    categorias_selecionadas = st.multiselect(
-        "Filtrar por categoria",
-        options=categorias_disponiveis,
-        default=categorias_disponiveis,
-    )
-
-
-with col2:
-
-    status_selecionados = st.multiselect(
-        "Filtrar por status",
-        options=status_disponiveis,
-        default=status_disponiveis,
-    )
-
-
-# =========================================================
-# Aplicar filtros
-# =========================================================
-
-df_filtrado = df[
-    df["categoria"].isin(
-        categorias_selecionadas
-    )
-    & df["status"].isin(
-        status_selecionados
-    )
-].copy()
-
-
-st.write(
-    f"**Registros encontrados:** {len(df_filtrado)}"
-)
-
-
-# =========================================================
 # Exportação
 # =========================================================
 
-st.subheader("📥 Exportação")
+st.subheader(
+    "📥 Exportação"
+)
 
 
 if df_filtrado.empty:
 
     st.info(
-        "Selecione pelo menos uma categoria e um status "
-        "para exportar os registros."
+        "Não existem registros para exportar."
     )
 
 else:
@@ -336,10 +582,12 @@ st.divider()
 
 
 # =========================================================
-# Tabela
+# Tabela de atendimentos
 # =========================================================
 
-st.subheader("📋 Atendimentos")
+st.subheader(
+    "📋 Atendimentos"
+)
 
 
 if df_filtrado.empty:
@@ -361,8 +609,16 @@ else:
         "status",
     ]
 
+    tabela = df_filtrado[
+        colunas_exibicao
+    ].copy()
+
+    tabela["data"] = tabela[
+        "data"
+    ].dt.strftime("%d/%m/%Y")
+
     st.dataframe(
-        df_filtrado[colunas_exibicao],
+        tabela,
         width="stretch",
         hide_index=True,
     )
@@ -375,7 +631,9 @@ st.divider()
 # Visualização
 # =========================================================
 
-st.subheader("📈 Visualização dos atendimentos")
+st.subheader(
+    "📈 Visualização dos atendimentos"
+)
 
 
 col1, col2 = st.columns(2)
@@ -387,7 +645,9 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.write("### Por categoria")
+    st.write(
+        "### Por categoria"
+    )
 
     if df_filtrado.empty:
 
@@ -402,7 +662,9 @@ with col1:
             .value_counts()
         )
 
-        st.bar_chart(categorias)
+        st.bar_chart(
+            categorias
+        )
 
 
 # =========================================================
@@ -411,7 +673,9 @@ with col1:
 
 with col2:
 
-    st.write("### Por status")
+    st.write(
+        "### Por status"
+    )
 
     if df_filtrado.empty:
 
@@ -426,7 +690,9 @@ with col2:
             .value_counts()
         )
 
-        st.bar_chart(status)
+        st.bar_chart(
+            status
+        )
 
 
 # =========================================================
@@ -434,7 +700,8 @@ with col2:
 # =========================================================
 
 st.write(
-    "### ⏱️ Distribuição dos tempos de atendimento"
+    "### ⏱️ Distribuição dos tempos "
+    "de atendimento"
 )
 
 
@@ -446,16 +713,19 @@ if df_filtrado.empty:
 
 else:
 
-    tempos = pd.to_numeric(
-        df_filtrado["tempo_atendimento"],
-        errors="coerce",
-    ).dropna()
-
+    tempos = (
+        pd.to_numeric(
+            df_filtrado["tempo_atendimento"],
+            errors="coerce",
+        )
+        .dropna()
+    )
 
     if tempos.empty:
 
         st.info(
-            "Não existem tempos válidos para exibir."
+            "Não existem tempos válidos "
+            "para exibir."
         )
 
     else:
@@ -470,11 +740,13 @@ else:
         )
 
         ax.set_title(
-            "Distribuição dos tempos de atendimento"
+            "Distribuição dos tempos "
+            "de atendimento"
         )
 
         ax.set_xlabel(
-            "Tempo de atendimento (minutos)"
+            "Tempo de atendimento "
+            "(minutos)"
         )
 
         ax.set_ylabel(
@@ -501,7 +773,10 @@ st.divider()
 # Qualidade dos dados
 # =========================================================
 
-st.subheader("⚠️ Qualidade dos dados")
+st.subheader(
+    "⚠️ Qualidade dos dados"
+)
+
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -510,7 +785,9 @@ with col1:
 
     st.metric(
         "Registros incompletos",
-        qualidade["registros_incompletos"],
+        qualidade[
+            "registros_incompletos"
+        ],
     )
 
 
@@ -518,7 +795,9 @@ with col2:
 
     st.metric(
         "Percentual incompleto",
-        f"{qualidade['percentual_incompletos']:.2f}%",
+        (
+            f"{qualidade['percentual_incompletos']:.2f}%"
+        ),
     )
 
 
@@ -537,7 +816,12 @@ with col4:
 
     st.metric(
         "Percentual com problemas",
-        f"{qualidade.get('percentual_com_problemas', 0):.2f}%",
+        (
+            f"{qualidade.get(
+                'percentual_com_problemas',
+                0,
+            ):.2f}%"
+        ),
     )
 
 
@@ -563,7 +847,9 @@ if detalhes:
 
         problemas.append(
             {
-                "Protocolo": item["protocolo"],
+                "Protocolo": item[
+                    "protocolo"
+                ],
                 "Problemas": ", ".join(
                     item["problemas"]
                 ),

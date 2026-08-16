@@ -6,6 +6,10 @@ LOG DE PROCESSAMENTO
 [INFO] Duplicidades removidas: 1
 [INFO] Registros com problemas: 5
 
+[INFO] Protocolos extraídos do TXT: 13
+[INFO] Telefones extraídos do TXT: 3
+[INFO] E-mails extraídos do TXT: 2
+
 [WARNING] ATD003 - email inválido
 [WARNING] ATD004 - email inválido
 [WARNING] ATD007 - tempo de atendimento inválido

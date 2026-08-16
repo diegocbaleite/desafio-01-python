@@ -40,7 +40,10 @@ def padronizar_categorias(
     """Padroniza as categorias usando categorias.json."""
     df = df.copy()
 
-    mapa = configuracao_categorias.get("categorias", {})
+    mapa = configuracao_categorias.get(
+        "categorias",
+        {},
+    )
 
     df["categoria"] = (
         df["categoria"]
@@ -82,7 +85,9 @@ def padronizar_datas(df: pd.DataFrame) -> pd.DataFrame:
     """Converte as datas para um formato único."""
     df = df.copy()
 
-    df["data"] = df["data"].apply(converter_data)
+    df["data"] = df["data"].apply(
+        converter_data
+    )
 
     return df
 
@@ -121,13 +126,18 @@ def processar_dados(
     configuracao_categorias: dict,
 ) -> pd.DataFrame:
     """Executa todas as etapas de tratamento dos dados."""
+
     df = padronizar_textos(df)
+
     df = padronizar_categorias(
         df,
         configuracao_categorias,
     )
+
     df = padronizar_datas(df)
+
     df = tratar_tempos(df)
+
     df = remover_duplicidades(df)
 
     return df
@@ -156,18 +166,64 @@ def calcular_indicadores(
         .to_dict()
     )
 
-    tempo_medio = df["tempo_atendimento"].mean()
-    tempo_mediano = df["tempo_atendimento"].median()
-    tempo_minimo = df["tempo_atendimento"].min()
-    tempo_maximo = df["tempo_atendimento"].max()
+    # ---------------------------------------------------------
+    # Indicadores de tempo
+    # ---------------------------------------------------------
+
+    tempos = df[
+        "tempo_atendimento"
+    ].to_numpy(dtype=float)
+
+    if np.isfinite(tempos).any():
+
+        tempo_medio = np.nanmean(
+            tempos
+        )
+
+        tempo_mediano = np.nanmedian(
+            tempos
+        )
+
+        tempo_minimo = np.nanmin(
+            tempos
+        )
+
+        tempo_maximo = np.nanmax(
+            tempos
+        )
+
+        # Normalização do tempo médio em relação
+        # ao limite máximo permitido de 480 minutos.
+        tempo_medio_normalizado = (
+            np.nanmean(tempos) / 480
+        ) * 100
+
+    else:
+
+        tempo_medio = 0.0
+        tempo_mediano = 0.0
+        tempo_minimo = 0.0
+        tempo_maximo = 0.0
+        tempo_medio_normalizado = 0.0
+
+    # ---------------------------------------------------------
+    # Categoria mais frequente
+    # ---------------------------------------------------------
 
     if quantidade_por_categoria:
+
         categoria_mais_frequente = max(
             quantidade_por_categoria,
             key=quantidade_por_categoria.get,
         )
+
     else:
+
         categoria_mais_frequente = None
+
+    # ---------------------------------------------------------
+    # Registros incompletos
+    # ---------------------------------------------------------
 
     registros_incompletos = df[
         df["email"].eq("")
@@ -179,16 +235,33 @@ def calcular_indicadores(
         registros_incompletos
     )
 
+    # ---------------------------------------------------------
+    # Duplicidades
+    # ---------------------------------------------------------
+
     duplicidades_removidas = (
-        total_original - total_processado
+        total_original
+        - total_processado
     )
 
+    # ---------------------------------------------------------
+    # Percentual de incompletos
+    # ---------------------------------------------------------
+
     if total_original > 0:
+
         percentual_incompletos = (
-            quantidade_incompletos / total_original
+            quantidade_incompletos
+            / total_original
         ) * 100
+
     else:
+
         percentual_incompletos = 0.0
+
+    # ---------------------------------------------------------
+    # Resultado
+    # ---------------------------------------------------------
 
     return {
         "resumo": {
@@ -201,23 +274,18 @@ def calcular_indicadores(
         "indicadores": {
             "tempo_medio_atendimento": (
                 float(tempo_medio)
-                if not pd.isna(tempo_medio)
-                else 0.0
             ),
             "tempo_mediano_atendimento": (
                 float(tempo_mediano)
-                if not pd.isna(tempo_mediano)
-                else 0.0
             ),
             "tempo_minimo_atendimento": (
                 float(tempo_minimo)
-                if not pd.isna(tempo_minimo)
-                else 0.0
             ),
             "tempo_maximo_atendimento": (
                 float(tempo_maximo)
-                if not pd.isna(tempo_maximo)
-                else 0.0
+            ),
+            "tempo_medio_normalizado_percentual": (
+                float(tempo_medio_normalizado)
             ),
             "categoria_mais_frequente": (
                 categoria_mais_frequente
@@ -227,7 +295,9 @@ def calcular_indicadores(
             "por_categoria": (
                 quantidade_por_categoria
             ),
-            "por_status": quantidade_por_status,
+            "por_status": (
+                quantidade_por_status
+            ),
         },
         "qualidade_dados": {
             "registros_incompletos": (

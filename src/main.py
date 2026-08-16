@@ -1,6 +1,9 @@
 from pathlib import Path
 
 from src.leitura import (
+    extrair_emails,
+    extrair_protocolos,
+    extrair_telefones,
     ler_csv,
     ler_json,
     ler_txt,
@@ -38,19 +41,40 @@ def main():
     caminho_config = RAIZ / "data" / "config.json"
 
     if not verificar_arquivo(caminho_config):
-        print(f"Erro: arquivo não encontrado: {caminho_config}")
+        print(
+            f"Erro: arquivo não encontrado: {caminho_config}"
+        )
         return
 
     config = ler_json(caminho_config)
 
-    caminho_csv = RAIZ / config["arquivos"]["atendimentos"]
-    caminho_categorias = RAIZ / config["arquivos"]["categorias"]
-    caminho_observacoes = RAIZ / config["arquivos"]["observacoes"]
+    caminho_csv = (
+        RAIZ / config["arquivos"]["atendimentos"]
+    )
 
-    caminho_saida_csv = RAIZ / config["saida"]["csv"]
-    caminho_saida_json = RAIZ / config["saida"]["json"]
-    caminho_log = RAIZ / config["saida"]["log"]
-    caminho_graficos = RAIZ / config["saida"]["graficos"]
+    caminho_categorias = (
+        RAIZ / config["arquivos"]["categorias"]
+    )
+
+    caminho_observacoes = (
+        RAIZ / config["arquivos"]["observacoes"]
+    )
+
+    caminho_saida_csv = (
+        RAIZ / config["saida"]["csv"]
+    )
+
+    caminho_saida_json = (
+        RAIZ / config["saida"]["json"]
+    )
+
+    caminho_log = (
+        RAIZ / config["saida"]["log"]
+    )
+
+    caminho_graficos = (
+        RAIZ / config["saida"]["graficos"]
+    )
 
     # ---------------------------------------------------------
     # 2. Verificar arquivos
@@ -90,10 +114,18 @@ def main():
     print("\nLendo dados...")
 
     df_original = ler_csv(caminho_csv)
-    categorias = ler_json(caminho_categorias)
-    observacoes = ler_txt(caminho_observacoes)
 
-    total_original = len(df_original)
+    categorias = ler_json(
+        caminho_categorias
+    )
+
+    observacoes = ler_txt(
+        caminho_observacoes
+    )
+
+    total_original = len(
+        df_original
+    )
 
     print(
         f"Registros originais: {total_original}"
@@ -105,7 +137,42 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 4. Validar registros
+    # 4. Extrair informações do TXT usando Regex
+    # ---------------------------------------------------------
+
+    print(
+        "\nExtraindo informações das observações..."
+    )
+
+    protocolos_txt = extrair_protocolos(
+        observacoes
+    )
+
+    telefones_txt = extrair_telefones(
+        observacoes
+    )
+
+    emails_txt = extrair_emails(
+        observacoes
+    )
+
+    print(
+        "Protocolos encontrados nas observações: "
+        f"{len(protocolos_txt)}"
+    )
+
+    print(
+        "Telefones encontrados nas observações: "
+        f"{len(telefones_txt)}"
+    )
+
+    print(
+        "E-mails encontrados nas observações: "
+        f"{len(emails_txt)}"
+    )
+
+    # ---------------------------------------------------------
+    # 5. Validar registros
     # ---------------------------------------------------------
 
     print("\nValidando registros...")
@@ -113,12 +180,16 @@ def main():
     problemas_validacao = []
 
     for _, registro in df_original.iterrows():
+
         valido, problemas = validar_registro(
             registro
         )
 
         if not valido:
-            protocolo = registro["protocolo"]
+
+            protocolo = registro[
+                "protocolo"
+            ]
 
             problemas_validacao.append(
                 {
@@ -137,7 +208,7 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 5. Processar dados
+    # 6. Processar dados
     # ---------------------------------------------------------
 
     print("\nProcessando dados...")
@@ -157,7 +228,7 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 6. Calcular indicadores
+    # 7. Calcular indicadores
     # ---------------------------------------------------------
 
     print("\nCalculando indicadores...")
@@ -168,32 +239,60 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 7. Adicionar informações da validação
+    # 8. Adicionar informações da validação
     # ---------------------------------------------------------
 
     percentual_com_problemas = (
         (
             total_com_problemas
             / total_original
-        ) * 100
+        )
+        * 100
         if total_original > 0
         else 0.0
     )
 
-    indicadores["qualidade_dados"][
+    indicadores[
+        "qualidade_dados"
+    ][
         "registros_com_problemas"
     ] = total_com_problemas
 
-    indicadores["qualidade_dados"][
+    indicadores[
+        "qualidade_dados"
+    ][
         "percentual_com_problemas"
     ] = percentual_com_problemas
 
-    indicadores["qualidade_dados"][
+    indicadores[
+        "qualidade_dados"
+    ][
         "detalhes_problemas"
     ] = problemas_validacao
 
     # ---------------------------------------------------------
-    # 8. Salvar resultados
+    # 9. Adicionar informações extraídas do TXT
+    # ---------------------------------------------------------
+
+    indicadores[
+        "dados_extraidos_txt"
+    ] = {
+        "protocolos": protocolos_txt,
+        "telefones": telefones_txt,
+        "emails": emails_txt,
+        "total_protocolos": len(
+            protocolos_txt
+        ),
+        "total_telefones": len(
+            telefones_txt
+        ),
+        "total_emails": len(
+            emails_txt
+        ),
+    }
+
+    # ---------------------------------------------------------
+    # 10. Salvar resultados
     # ---------------------------------------------------------
 
     print("\nSalvando resultados...")
@@ -209,7 +308,7 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 9. Criar log detalhado
+    # 11. Criar log detalhado
     # ---------------------------------------------------------
 
     mensagens_log = [
@@ -233,12 +332,31 @@ def main():
             f"{total_com_problemas}"
         ),
         "",
+        (
+            "[INFO] Protocolos extraídos do TXT: "
+            f"{len(protocolos_txt)}"
+        ),
+        (
+            "[INFO] Telefones extraídos do TXT: "
+            f"{len(telefones_txt)}"
+        ),
+        (
+            "[INFO] E-mails extraídos do TXT: "
+            f"{len(emails_txt)}"
+        ),
+        "",
     ]
 
     for item in problemas_validacao:
-        protocolo = item["protocolo"]
 
-        for problema in item["problemas"]:
+        protocolo = item[
+            "protocolo"
+        ]
+
+        for problema in item[
+            "problemas"
+        ]:
+
             mensagens_log.append(
                 f"[WARNING] {protocolo} - {problema}"
             )
@@ -270,7 +388,7 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 10. Gerar gráficos
+    # 12. Gerar gráficos
     # ---------------------------------------------------------
 
     print("\nGerando gráficos...")
@@ -288,7 +406,7 @@ def main():
     )
 
     # ---------------------------------------------------------
-    # 11. Exibir relatório
+    # 13. Exibir relatório
     # ---------------------------------------------------------
 
     print()
@@ -300,7 +418,7 @@ def main():
     print(resumo)
 
     # ---------------------------------------------------------
-    # 12. Informar arquivos gerados
+    # 14. Informar arquivos gerados
     # ---------------------------------------------------------
 
     print("\nArquivos gerados:")

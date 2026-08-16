@@ -9,6 +9,7 @@
         "tempo_mediano_atendimento": 35.0,
         "tempo_minimo_atendimento": 15.0,
         "tempo_maximo_atendimento": 60.0,
+        "tempo_medio_normalizado_percentual": 7.407407407407408,
         "categoria_mais_frequente": "Acesso ao AVA"
     },
     "distribuicao": {
@@ -61,5 +62,34 @@
                 ]
             }
         ]
+    },
+    "dados_extraidos_txt": {
+        "protocolos": [
+            "ATD001",
+            "ATD002",
+            "ATD003",
+            "ATD003",
+            "ATD004",
+            "ATD005",
+            "ATD006",
+            "ATD007",
+            "ATD008",
+            "ATD009",
+            "ATD010",
+            "ATD011",
+            "ATD012"
+        ],
+        "telefones": [
+            "(65) 99999-1111",
+            "(65) 98888-2222",
+            "(65) 99999-3333"
+        ],
+        "emails": [
+            "suporte@ficdevia.com.br",
+            "atendimento@ficdevia.com.br"
+        ],
+        "total_protocolos": 13,
+        "total_telefones": 3,
+        "total_emails": 2
     }
 }
