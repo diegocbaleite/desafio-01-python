@@ -1,96 +1,139 @@
 # 📊 Sistema de Análise de Atendimentos
 
-Sistema desenvolvido em Python para leitura, tratamento, validação e análise de dados de atendimentos de suporte técnico.
+Sistema desenvolvido em Python para leitura, limpeza, validação, tratamento e análise de dados de atendimentos de suporte técnico de alunos.
 
-O projeto recebe dados provenientes de arquivos CSV, JSON e TXT, realiza limpeza e padronização dos registros, valida os dados, calcula indicadores, gera relatórios, gráficos e disponibiliza um dashboard para análise dos atendimentos.
+O projeto recebe dados provenientes de arquivos CSV, JSON e TXT, realiza limpeza e padronização dos registros, valida a qualidade dos dados, calcula indicadores estatísticos com Pandas e NumPy, gera relatórios, exporta gráficos em formato PNG e disponibiliza um dashboard interativo em Streamlit.
 
 ---
 
 ## 👨‍💻 Identificação
 
 **Alunos:**
-
 - Diego Assunção Leite
 - Leonardo de Oliveira Ramos
 
-**Turma:** Vespertino
+**Curso/Módulo:** FIC_DEV — Módulo Python para IA (Aulas 01 a 10)  
+**Instituição:** SECITECI / Escola Técnica Estadual de Cuiabá  
+**Turma:** Vespertino  
 
 ---
 
 ## 🎯 Objetivo
 
-O objetivo do projeto é construir uma aplicação completa de análise de dados capaz de:
+Desenvolver uma aplicação modular em linha de comando (CLI) em Python capaz de:
 
-- Ler arquivos CSV, JSON e TXT;
-- Ler configurações armazenadas em JSON;
-- Validar registros;
-- Identificar registros inválidos ou incompletos;
-- Limpar e padronizar dados;
-- Padronizar categorias;
-- Converter datas para um formato único;
-- Tratar tempos de atendimento inválidos;
-- Remover registros duplicados;
-- Utilizar expressões regulares para validação e extração de dados;
-- Calcular indicadores estatísticos;
-- Utilizar Pandas para processamento e análise;
-- Utilizar NumPy em operações numéricas;
-- Gerar relatórios;
-- Gerar arquivos CSV e JSON;
-- Registrar problemas em arquivo de log;
-- Gerar gráficos com Matplotlib;
-- Executar testes automatizados;
-- Disponibilizar um dashboard para visualização dos resultados.
+- Ler configurações dinâmicas de caminhos e parâmetros a partir do `config.json`;
+- Suportar a leitura de arquivos em formato CSV (com delimitador configurável), JSON e TXT;
+- Classificar registros como válidos ou inválidos, registrando motivos de rejeição em log de auditoria;
+- Realizar limpeza de texto (remoção de espaços desnecessários e padronização de caixa);
+- Padronizar categorias de atendimento utilizando dicionário de sinônimos/palavras-chave;
+- Converter múltiplos formatos de data para o padrão ISO (`YYYY-MM-DD`);
+- Tratar e filtrar tempos de atendimento (intervalo permitido de 0 a 480 minutos);
+- Remover registros duplicados com base no identificador/protocolo;
+- Extrair protocolos, telefones e e-mails de arquivos de observações em TXT usando expressões regulares (Regex);
+- Calcular métricas estatísticas utilizando **Pandas** e **NumPy** (total de chamados, distribuições por categoria e status, tempo médio, mediano, min/max e tempo médio normalizado);
+- Gerar visualizações em formato PNG com **Matplotlib** (`atendimentos_por_categoria.png` e `distribuicao_tempos.png`);
+- Exportar resultados limpos em CSV (`atendimentos_processados.csv`), resumo estatístico em JSON (`resumo.json`) e log de erros (`erros.log`);
+- Garantir tolerância a falhas (RF08) para que erros em registros não interrompam a execução do pipeline;
+- Disponibilizar um Dashboard interativo complementar em **Streamlit**.
 
 ---
 
-## 🛠️ Tecnologias
+## 📌 Mapeamento da Implementação dos Requisitos Funcionais
 
-- Python 3
-- Pandas
-- NumPy
-- Matplotlib
-- Streamlit
-- Pytest
-- Regex
-- Git
-- GitHub
+Abaixo está o detalhamento técnico de como cada **Requisito Funcional (RF01 a RF08)** foi implementado nos módulos da aplicação:
+
+### 🔹 RF01 — Inicialização
+- **Requisito**: O sistema deverá ser executado pelo comando `python -m src.main`.
+- **Implementação**: O módulo de entrada `src/main.py` contém a função de execução principal (`if __name__ == "__main__": main()`). A execução modular via `-m src.main` inicializa todas as etapas do pipeline em sequência a partir do diretório raiz.
+
+### 🔹 RF02 — Leitura dos Dados
+- **Requisito**: O sistema deverá ler os arquivos CSV, JSON e TXT indicados no arquivo de configuração.
+- **Implementação**: No módulo `src/leitura.py`, foram criadas as funções `ler_json()`, `ler_csv()` e `ler_txt()`. O arquivo `data/config.json` armazena os caminhos dinâmicos dos arquivos de entrada e o parâmetro `"separador_csv": ";"`. A função `ler_csv()` lê o arquivo utilizando o delimitador configurado com fallback automático para vírgula.
+
+### 🔹 RF03 — Validação
+- **Requisito**: Cada registro deverá ser classificado como válido ou inválido. A aplicação deverá apresentar o motivo da rejeição de registros inválidos.
+- **Implementação**: No módulo `src/validacao.py`, as funções `validar_email()`, `validar_tempo()`, `validar_data()`, `validar_protocolo()` e `validar_registro()` analisam cada linha do dataset. Se um registro for classificado como inválido, a lista de inconsistências encontradas (ex: `"email inválido"`, `"tempo de atendimento inválido"`) é associada ao registro para gravação detalhada no `erros.log`.
+
+### 🔹 RF04 — Tratamento dos Dados
+- **Requisito**: O sistema deverá remover espaços desnecessários, uniformizar maiúsculas e minúsculas, padronizar categorias, converter datas, tratar valores ausentes e eliminar duplicidades pelo protocolo.
+- **Implementação**: No módulo `src/processamento.py`:
+  - **Remover espaços e uniformizar caixa**: `limpar_texto()` e `padronizar_textos()` removem espaços desnecessários (`re.sub(r"\s+", " ", val)`) e ajustam a caixa (`.str.lower()` para e-mails e `.str.title()` para status).
+  - **Padronizar categorias**: `padronizar_categorias()` e `mapear_categoria_valor()` utilizam o dicionário de sinônimos/palavras-chave do `data/categorias.json` para mapear variações de escrita para os nomes oficiais das categorias.
+  - **Converter datas**: `padronizar_datas()` e `converter_data()` convertem múltiplos formatos (`YYYY-MM-DD`, `DD/MM/YYYY`, `YYYY/MM/DD`, `DD-MM-YYYY`) para o padrão ISO (`YYYY-MM-DD`).
+  - **Tratar valores ausentes / tempos**: `tratar_tempos()` converte tempos para valores numéricos e transforma valores negativos (`<= 0`) ou outliers (`> 480`) em nulos (`NaN`).
+  - **Eliminar duplicidades**: `remover_duplicidades()` utiliza `df.drop_duplicates(subset="protocolo", keep="first")`.
+  - **Descarte de inválidos**: `processar_dados()` filtra e remove linhas inconsistentes do dataset final `atendimentos_processados.csv`.
+
+### 🔹 RF05 — Análise Estatística
+- **Requisito**: O sistema deverá produzir indicadores estatísticos utilizando Pandas e NumPy.
+- **Implementação**: No módulo `src/processamento.py`, a função `calcular_indicadores()` utiliza **Pandas** para agrupamentos e distribuições por categoria/status (`value_counts()`) e **NumPy** para operações matemáticas vetoriais:
+  - `np.mean()` (Tempo médio);
+  - `np.median()` (Tempo mediano);
+  - `np.min()` / `np.max()` (Tempos mínimo e máximo);
+  - Normalização estatística do tempo médio referente ao limite de 480 minutos (`(tempo_medio / 480.0) * 100.0`).
+
+### 🔹 RF06 — Visualização
+- **Requisito**: O sistema deverá gerar e salvar pelo menos dois gráficos em formato PNG.
+- **Implementação**: No módulo `src/relatorios.py`, as funções `gerar_grafico_categorias()` e `gerar_grafico_tempos()` utilizam a biblioteca **Matplotlib** para renderizar e salvar os arquivos de imagem em `output/graficos/`:
+  - `atendimentos_por_categoria.png` (Gráfico de barras de distribuição por categoria);
+  - `distribuicao_tempos.png` (Histograma de distribuição dos tempos de atendimento).
+
+### 🔹 RF07 — Exportação
+- **Requisito**: O sistema deverá gerar um CSV com os dados tratados, um JSON com o resumo dos indicadores e um arquivo de log com os problemas encontrados.
+- **Implementação**: No módulo `src/relatorios.py`, as funções `salvar_csv()`, `salvar_json()` e `salvar_log()` exportam os resultados para o diretório `output/`:
+  - `output/atendimentos_processados.csv`: Dataset contendo apenas os dados limpos, normalizados e válidos.
+  - `output/resumo.json`: Arquivo JSON estruturado contendo todos os indicadores calculados.
+  - `output/erros.log`: Arquivo de texto formatado detalhando os erros, advertências e motivos de rejeição por linha/protocolo.
+
+### 🔹 RF08 — Tolerância a Falhas
+- **Requisito**: A ocorrência de uma linha inválida não poderá encerrar toda a aplicação.
+- **Implementação**: O pipeline em `src/main.py` percorre os registros de forma resiliente. Registros corrompidos ou com falhas de validação são devidamente isolados, auditados no `erros.log` e descartados da saída limpa sem interromper o fluxo de execução nem disparar exceções fatais que parem a aplicação CLI.
 
 ---
 
-## 📁 Estrutura do projeto
+## 🛠️ Tecnologias Utilizadas
+
+- **Python 3.14+**
+- **Pandas** (Leitura, agrupamento e transformação de dados)
+- **NumPy** (Cálculos matemáticos e normalização estatística)
+- **Matplotlib** (Geração de gráficos em imagem PNG)
+- **Streamlit** (Dashboard interativo web)
+- **Pytest** (Suíte de testes unitários e de integração automatizados)
+- **Regex (`re`)** (Extração de padrões de texto)
+- **Git / GitHub** (Controle de versão e gestão de branches)
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```text
 desafio-01-python/
-│
 ├── data/
 │   ├── atendimentos.csv
 │   ├── categorias.json
-│   ├── observacoes.txt
-│   └── config.json
-│
+│   ├── config.json
+│   └── observacoes.txt
 ├── output/
 │   ├── atendimentos_processados.csv
 │   ├── resumo.json
 │   ├── erros.log
 │   └── graficos/
 │       ├── atendimentos_por_categoria.png
-│       └── tempos_atendimento.png
-│
+│       └── distribuicao_tempos.png
 ├── src/
 │   ├── __init__.py
-│   ├── leitura.py
-│   ├── processamento.py
-│   ├── validacao.py
-│   ├── relatorios.py
 │   ├── main.py
+│   ├── leitura.py
+│   ├── validacao.py
+│   ├── processamento.py
+│   ├── relatorios.py
 │   └── dashboard.py
-│
 ├── tests/
 │   ├── test_leitura.py
 │   ├── test_pipeline.py
 │   ├── test_processamento.py
 │   └── test_validacao.py
-│
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -98,507 +141,84 @@ desafio-01-python/
 
 ---
 
-## ⚙️ Configuração
+## ⚙️ Configuração Dinâmica (`data/config.json`)
 
-As configurações utilizadas pelo sistema ficam armazenadas no arquivo:
-
-```text
-data/config.json
-```
-
-Exemplo:
+As configurações da aplicação ficam centralizadas no arquivo `data/config.json`:
 
 ```json
 {
-    "arquivos": {
-        "atendimentos": "data/atendimentos.csv",
-        "categorias": "data/categorias.json",
-        "observacoes": "data/observacoes.txt"
-    },
-    "saida": {
-        "csv": "output/atendimentos_processados.csv",
-        "json": "output/resumo.json",
-        "log": "output/erros.log",
-        "graficos": "output/graficos"
-    }
+  "arquivo_atendimentos": "data/atendimentos.csv",
+  "arquivo_categorias": "data/categorias.json",
+  "arquivo_observacoes": "data/observacoes.txt",
+  "diretorio_saida": "output",
+  "separador_csv": ";"
 }
 ```
 
-O arquivo de configuração centraliza os caminhos utilizados pelo sistema para leitura dos dados e geração dos resultados.
-
 ---
 
-## 🐍 Criação do ambiente virtual
+## 🐍 Ambiente Virtual e Instalação
 
-No Windows PowerShell:
+### 1. Criar o Ambiente Virtual
 
-```powershell
-python -m venv .venv
+No Linux/macOS:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-Ative o ambiente virtual:
-
+No Windows PowerShell:
 ```powershell
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Para verificar o Python utilizado:
+### 2. Instalar Dependências
 
-```powershell
-python -c "import sys; print(sys.executable)"
+```bash
+pip install -r requirements.txt
 ```
-
-O caminho apresentado deve apontar para o diretório `.venv`.
 
 ---
 
-## 📦 Instalação das dependências
+## ▶️ Execução da Aplicação (RF01)
 
-Com o ambiente virtual ativado:
+A aplicação principal em linha de comando (CLI) é executada a partir do diretório raiz pelo comando:
 
-```powershell
-python -m pip install -r requirements.txt
-```
-
-Principais bibliotecas utilizadas:
-
-- Pandas;
-- NumPy;
-- Matplotlib;
-- Streamlit;
-- Pytest.
-
----
-
-## ▶️ Execução do sistema
-
-O comando principal do projeto é:
-
-```powershell
+```bash
 python -m src.main
 ```
 
-Durante a execução, o sistema:
-
-1. Verifica os arquivos necessários;
-2. Lê os dados;
-3. Extrai informações das observações;
-4. Valida os registros;
-5. Processa os dados;
-6. Calcula os indicadores;
-7. Salva os resultados;
-8. Gera os gráficos;
-9. Exibe o relatório no terminal.
-
 ---
 
-## 📊 Dashboard
+## 🧪 Testes Automatizados (Pytest)
 
-O projeto possui um dashboard desenvolvido com Streamlit.
+A suíte de testes cobre a leitura de arquivos, extração com Regex, validações de campos, tratamento de dados e pipeline completo.
 
-O dashboard é uma funcionalidade complementar para visualização dos resultados do processamento.
+Para executar os testes:
 
-Para executá-lo:
-
-```powershell
-python -m streamlit run src/dashboard.py
-```
-
-Depois acesse:
-
-```text
-http://localhost:8501
-```
-
-O dashboard apresenta:
-
-- Indicadores principais;
-- Atendimentos resolvidos;
-- Atendimentos pendentes;
-- Atendimentos em andamento;
-- Tempo médio de atendimento;
-- Categoria mais frequente;
-- Filtros por categoria;
-- Filtros por status;
-- Tabela de atendimentos;
-- Gráficos;
-- Indicadores de qualidade dos dados;
-- Registros com problemas;
-- Exportação dos atendimentos filtrados em CSV;
-- Informações do processamento.
-
----
-
-## 🧪 Testes automatizados
-
-Os testes são executados utilizando Pytest:
-
-```powershell
+```bash
 python -m pytest
 ```
 
-Resultado da validação final:
+### Resultado da Validação:
 
 ```text
-33 passed
-```
-
-Os testes abrangem:
-
-- Leitura de arquivos;
-- Leitura de CSV;
-- Leitura de JSON;
-- Leitura de TXT;
-- Verificação de arquivos;
-- Extração de protocolos;
-- Extração de telefones;
-- Extração de e-mails;
-- Validação dos dados;
-- Processamento dos registros;
-- Pipeline de processamento.
-
----
-
-## 🧹 Tratamento dos dados
-
-O sistema realiza:
-
-- Remoção de espaços desnecessários;
-- Padronização de textos;
-- Padronização de e-mails;
-- Padronização de status;
-- Padronização das categorias;
-- Conversão de datas;
-- Tratamento de valores ausentes;
-- Validação dos campos obrigatórios;
-- Validação de e-mails;
-- Tratamento de tempos de atendimento inválidos;
-- Identificação de registros duplicados;
-- Remoção de duplicidades pelo protocolo.
-
----
-
-## 🗂️ Categorias
-
-As categorias são definidas em:
-
-```text
-data/categorias.json
-```
-
-Categorias previstas na configuração:
-
-- Acesso ao AVA;
-- Instalação de Programas;
-- Configuração do Python;
-- Senha;
-- Execução de atividades.
-
-O sistema utiliza o arquivo `categorias.json` para reconhecer diferentes formas de escrita e padronizar as categorias durante o processamento.
-
----
-
-## ⚠️ Registros inválidos
-
-Registros com problemas não interrompem a execução da aplicação.
-
-São identificados problemas como:
-
-- Campos obrigatórios vazios;
-- E-mail inválido;
-- Tempo de atendimento inválido.
-
-Os problemas são registrados em:
-
-```text
-output/erros.log
-```
-
-Dessa forma, uma linha inválida não impede o processamento dos demais registros.
-
----
-
-## 🔎 Dados em TXT e expressões regulares
-
-O arquivo:
-
-```text
-data/observacoes.txt
-```
-
-é utilizado como fonte adicional de informações.
-
-O sistema utiliza expressões regulares para identificar:
-
-- Protocolos;
-- Telefones;
-- E-mails.
-
-Resultado da execução:
-
-```text
-Protocolos encontrados nas observações: 13
-Telefones encontrados nas observações: 3
-E-mails encontrados nas observações: 2
+============================== 34 passed in 0.35s ==============================
 ```
 
 ---
 
-## 📈 Indicadores gerados
-
-O sistema produz:
-
-- Quantidade total de atendimentos;
-- Quantidade por categoria;
-- Quantidade por status;
-- Tempo médio;
-- Tempo mediano;
-- Tempo mínimo;
-- Tempo máximo;
-- Tempo médio normalizado;
-- Categoria mais frequente;
-- Registros incompletos;
-- Percentual de registros incompletos;
-- Registros com problemas;
-- Percentual de registros com problemas;
-- Duplicidades removidas;
-- Protocolos encontrados;
-- Telefones encontrados;
-- E-mails encontrados.
-
----
-
-## 📊 Gráficos
-
-Os gráficos são gerados com Matplotlib e armazenados em:
-
-```text
-output/graficos/
-```
-
-Arquivos:
-
-```text
-atendimentos_por_categoria.png
-tempos_atendimento.png
-```
-
----
-
-## 📤 Arquivos de saída
-
-Após a execução:
-
-```text
-output/
-├── atendimentos_processados.csv
-├── resumo.json
-├── erros.log
-└── graficos/
-    ├── atendimentos_por_categoria.png
-    └── tempos_atendimento.png
-```
-
-### atendimentos_processados.csv
-
-Contém os registros tratados e padronizados.
-
-### resumo.json
-
-Contém os indicadores calculados.
-
-### erros.log
-
-Registra os problemas encontrados durante a validação e processamento.
-
----
-
-## 📋 Resultado da execução
-
-Resultado final obtido durante a validação do projeto:
-
-```text
-Registros originais: 13
-Registros processados: 12
-Duplicidades removidas: 1
-```
-
-### Atendimentos por categoria
-
-```text
-Acesso ao AVA: 3
-Instalação de Programas: 3
-Configuração Python: 3
-Problemas com Senha: 3
-```
-
-### Atendimentos por status
-
-```text
-Resolvido: 7
-Pendente: 3
-Em Andamento: 2
-```
-
-### Indicadores de tempo
-
-```text
-Tempo médio: 35.56 minutos
-Tempo mediano: 35.00 minutos
-Tempo mínimo: 15.00 minutos
-Tempo máximo: 60.00 minutos
-Tempo médio normalizado: 7.41%
-```
-
-### Categoria mais frequente
-
-```text
-Acesso ao AVA
-```
-
-### Qualidade dos dados
-
-```text
-Registros incompletos: 4
-Percentual de incompletos: 30.77%
-
-Registros com problemas: 5
-Percentual com problemas: 38.46%
-```
-
-### Informações extraídas
-
-```text
-Protocolos encontrados: 13
-Telefones encontrados: 3
-E-mails encontrados: 2
-```
-
----
-
-## 🔄 Fluxo de processamento
-
-```text
-Arquivos de entrada
-        │
-        ▼
-   Leitura dos dados
-        │
-        ▼
-Extração de informações
-        │
-        ▼
-      Validação
-        │
-        ▼
-Limpeza e padronização
-        │
-        ▼
-Tratamento de tempos
-        │
-        ▼
-Tratamento de duplicidades
-        │
-        ▼
-Cálculo dos indicadores
-        │
-        ▼
-Geração de relatórios
-        │
-        ├──────────────► CSV
-        │
-        ├──────────────► JSON
-        │
-        ├──────────────► LOG
-        │
-        └──────────────► Gráficos PNG
-```
-
----
-
-## 🧩 Organização dos módulos
-
-### src/leitura.py
-
-Responsável pela leitura dos arquivos e extração utilizando Regex.
-
-Funções:
-
-- Leitura de CSV;
-- Leitura de JSON;
-- Leitura de TXT;
-- Verificação de arquivos;
-- Extração de protocolos;
-- Extração de telefones;
-- Extração de e-mails.
-
-### src/validacao.py
-
-Responsável pela validação dos registros.
-
-Realiza:
-
-- Validação de e-mail;
-- Validação de tempo;
-- Validação de campos obrigatórios;
-- Identificação dos problemas.
-
-### src/processamento.py
-
-Responsável pelo tratamento e análise dos dados.
-
-Realiza:
-
-- Limpeza de textos;
-- Padronização de categorias;
-- Conversão de datas;
-- Tratamento de tempos;
-- Remoção de duplicidades;
-- Cálculo dos indicadores.
-
-### src/relatorios.py
-
-Responsável pela geração dos resultados.
-
-Realiza:
-
-- Salvamento do CSV;
-- Salvamento do JSON;
-- Salvamento do log;
-- Geração do resumo;
-- Geração dos gráficos.
-
-### src/main.py
-
-Responsável pela execução do pipeline completo.
-
-### src/dashboard.py
-
-Responsável pela interface visual desenvolvida com Streamlit.
-
----
-
-## 🔐 Tolerância a falhas
-
-O sistema foi desenvolvido para continuar o processamento mesmo quando são encontrados registros inválidos ou incompletos.
-
-Os problemas identificados são registrados para posterior análise, evitando que uma única linha com erro interrompa todo o processamento.
-
----
-
-## 🔀 Controle de versão
-
-O projeto utiliza Git e GitHub para controle de versão.
-
-Durante o desenvolvimento foram utilizadas branches para separar funcionalidades e posteriormente integrar as alterações.
-
-As funcionalidades foram consolidadas na branch:
-
-```text
-main
-```
-
-O projeto foi sincronizado com o repositório remoto do GitHub.
+## 🔀 Controle de Versão e Branches
+
+O projeto adotou uma estratégia de desenvolvimento modular com git branches por funcionalidade:
+
+- **`main`**: Branch estável do repositório.
+- **`develop-leo`**: Branch de consolidação com todas as funcionalidades integradas.
+- **`feature/config-e-leitura`**: Adequação da leitura dinâmica e Regex.
+- **`feature/padronizacao-categorias`**: Implementação do dicionário de sinônimos de categorias.
+- **`feature/validacao-e-descarte`**: Regras de validação estrita, auditoria e filtragem de inválidos.
+- **`feature/grafico-distribuicao-tempos`**: Ajustes na geração dos gráficos em PNG.
 
 ---
 
@@ -650,64 +270,9 @@ Os discentes foram responsáveis por:
 
 ---
 
-## 🧪 Validação final
-
-### Testes
-
-```powershell
-python -m pytest
-```
-
-Resultado:
-
-```text
-33 passed
-```
-
-### Pipeline
-
-```powershell
-python -m src.main
-```
-
-Resultado:
-
-```text
-Processamento concluído com sucesso!
-```
-
-### Dashboard
-
-```powershell
-python -m streamlit run src/dashboard.py
-```
-
-### Git
-
-```powershell
-git status
-```
-
-Resultado esperado:
-
-```text
-nothing to commit, working tree clean
-```
-
-### GitHub
-
-```powershell
-git push origin main
-```
-
-Após a sincronização do repositório, o projeto deve estar atualizado no GitHub.
-
----
-
 ## 👨‍💻 Autores
 
-**Diego Assunção Leite**
+- **Diego Assunção Leite**
+- **Leonardo de Oliveira Ramos**
 
-**Leonardo de Oliveira Ramos**
-
-**Turma:** Vespertino
+**Turma:** Vespertino — FIC_DEV Módulo Python para IA (SECITECI)
