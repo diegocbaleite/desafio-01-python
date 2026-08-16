@@ -78,11 +78,7 @@ try:
 
 except FileNotFoundError as erro:
     st.error(str(erro))
-
-    st.info(
-        "Execute primeiro: python -m src.main"
-    )
-
+    st.info("Execute primeiro: python -m src.main")
     st.stop()
 
 
@@ -93,7 +89,7 @@ qualidade = dados["qualidade_dados"]
 
 
 # =========================================================
-# Botão para atualizar
+# Atualização dos dados
 # =========================================================
 
 if st.button("🔄 Atualizar dados"):
@@ -118,28 +114,19 @@ with col1:
 with col2:
     st.metric(
         "Resolvidos",
-        distribuicao["por_status"].get(
-            "Resolvido",
-            0,
-        ),
+        distribuicao["por_status"].get("Resolvido", 0),
     )
 
 with col3:
     st.metric(
         "Pendentes",
-        distribuicao["por_status"].get(
-            "Pendente",
-            0,
-        ),
+        distribuicao["por_status"].get("Pendente", 0),
     )
 
 with col4:
     st.metric(
         "Em andamento",
-        distribuicao["por_status"].get(
-            "Em Andamento",
-            0,
-        ),
+        distribuicao["por_status"].get("Em Andamento", 0),
     )
 
 
@@ -223,6 +210,38 @@ st.write(
 
 
 # =========================================================
+# Exportação dos dados filtrados
+# =========================================================
+
+st.subheader("📥 Exportação")
+
+if df_filtrado.empty:
+
+    st.info(
+        "Selecione pelo menos uma categoria e um status "
+        "para exportar os registros."
+    )
+
+else:
+
+    dados_csv = df_filtrado.to_csv(
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    st.download_button(
+        label="📥 Baixar atendimentos filtrados",
+        data=dados_csv,
+        file_name="atendimentos_filtrados.csv",
+        mime="text/csv",
+        width="stretch",
+    )
+
+
+st.divider()
+
+
+# =========================================================
 # Tabela de atendimentos
 # =========================================================
 
@@ -271,9 +290,7 @@ with col1:
 
     if df_filtrado.empty:
 
-        st.info(
-            "Não há dados para exibir."
-        )
+        st.info("Não há dados para exibir.")
 
     else:
 
@@ -293,9 +310,7 @@ with col2:
 
     if df_filtrado.empty:
 
-        st.info(
-            "Não há dados para exibir."
-        )
+        st.info("Não há dados para exibir.")
 
     else:
 
@@ -338,10 +353,7 @@ with col3:
 
     st.metric(
         "Registros com problemas",
-        qualidade.get(
-            "registros_com_problemas",
-            0,
-        ),
+        qualidade.get("registros_com_problemas", 0),
     )
 
 with col4:
@@ -372,9 +384,7 @@ if detalhes:
         problemas.append(
             {
                 "Protocolo": item["protocolo"],
-                "Problemas": ", ".join(
-                    item["problemas"]
-                ),
+                "Problemas": ", ".join(item["problemas"]),
             }
         )
 
@@ -416,6 +426,10 @@ with col3:
         resumo["duplicidades_removidas"],
     )
 
+
+# =========================================================
+# Rodapé
+# =========================================================
 
 st.caption(
     "Dados carregados de output/resumo.json e "
