@@ -6,9 +6,14 @@ PADRAO_EMAIL = re.compile(
     r"^[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-zA-Z]{2,}$"
 )
 
+PADRAO_PROTOCOLO = re.compile(
+    r"^(?:[A-Z]+-)?\d{4}-\d{4}$|^ATD\d{3,4}$",
+    re.IGNORECASE,
+)
+
 
 def validar_email(email: str) -> bool:
-    """Valida o formato básico de um e-mail."""
+    """Valida o formato básico de um e-mail com TLD."""
     if pd.isna(email):
         return False
 
@@ -21,7 +26,7 @@ def validar_email(email: str) -> bool:
 
 
 def validar_tempo(tempo) -> bool:
-    """Verifica se o tempo de atendimento é válido."""
+    """Verifica se o tempo de atendimento é válido (0 < tempo <= 480 minutos)."""
     if pd.isna(tempo):
         return False
 
@@ -33,33 +38,73 @@ def validar_tempo(tempo) -> bool:
     return 0 < tempo <= 480
 
 
-def validar_campos_obrigatorios(registro: pd.Series) -> list[str]:
-    """Retorna os problemas encontrados no registro."""
-    problemas = []
+def validar_data(valor) -> bool:
+    """Verifica se a data é válida e pode ser convertida."""
+    if pd.isna(valor):
+        return False
 
-    campos_obrigatorios = [
-        "protocolo",
-        "nome",
-        "categoria",
-        "data",
-        "status",
+    if isinstance(valor, (pd.Timestamp, pd.DatetimeIndex)):
+        return True
+
+    valor = str(valor).strip()
+    if not valor:
+        return False
+
+    formatos = [
+        "%Y-%m-%d",
+        "%d/%m/%Y",
+        "%Y/%m/%d",
+        "%d-%m-%Y",
     ]
 
-    for campo in campos_obrigatorios:
-        if pd.isna(registro[campo]) or not str(registro[campo]).strip():
+    for formato in formatos:
+        try:
+            pd.to_datetime(valor, format=formato)
+            return True
+        except ValueError:
+            continue
+
+    return False
+
+
+def validar_protocolo(protocolo: str) -> bool:
+    """Valida o formato do protocolo de atendimento."""
+    if pd.isna(protocolo):
+        return False
+
+    proto = str(protocolo).strip()
+    if not proto:
+        return False
+
+    return bool(PADRAO_PROTOCOLO.match(proto))
+
+
+def validar_campos_obrigatorios(registro: pd.Series) -> list[str]:
+    """Retorna a lista de problemas/inconsistências encontrados no registro."""
+    problemas = []
+
+    # Campos simples obrigatórios
+    campos = ["protocolo", "nome", "categoria", "status"]
+    for campo in campos:
+        if pd.isna(registro.get(campo)) or not str(registro.get(campo)).strip():
             problemas.append(f"{campo} vazio")
 
-    if not validar_email(registro["email"]):
+    # Validação de e-mail
+    if not validar_email(registro.get("email")):
         problemas.append("email inválido")
 
-    if not validar_tempo(registro["tempo_atendimento"]):
+    # Validação de tempo
+    if not validar_tempo(registro.get("tempo_atendimento")):
         problemas.append("tempo de atendimento inválido")
+
+    # Validação de data
+    if not validar_data(registro.get("data")):
+        problemas.append("data inválida")
 
     return problemas
 
 
 def validar_registro(registro: pd.Series) -> tuple[bool, list[str]]:
-    """Valida um registro e retorna status e motivos."""
+    """Valida um registro e retorna uma tupla (é_válido, lista_de_motivos)."""
     problemas = validar_campos_obrigatorios(registro)
-
     return len(problemas) == 0, problemas

@@ -3,6 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from src.validacao import validar_registro
+
 
 def limpar_texto(valor) -> str:
     """Remove espaços extras e padroniza o texto."""
@@ -143,8 +145,9 @@ def remover_duplicidades(df: pd.DataFrame) -> pd.DataFrame:
 def processar_dados(
     df: pd.DataFrame,
     configuracao_categorias: dict,
+    descartar_invalidos: bool = True,
 ) -> pd.DataFrame:
-    """Executa todas as etapas de tratamento dos dados."""
+    """Executa todas as etapas de tratamento e filtragem dos dados."""
 
     df = padronizar_textos(df)
 
@@ -159,7 +162,15 @@ def processar_dados(
 
     df = remover_duplicidades(df)
 
+    if descartar_invalidos:
+        mascara_validos = []
+        for _, reg in df.iterrows():
+            valido, _ = validar_registro(reg)
+            mascara_validos.append(valido)
+        df = df[mascara_validos].reset_index(drop=True)
+
     return df
+
 
 
 def calcular_indicadores(
