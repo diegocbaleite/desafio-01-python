@@ -9,6 +9,7 @@ O projeto recebe dados provenientes de arquivos CSV, JSON e TXT, realiza limpeza
 ## 👨‍💻 Identificação
 
 **Alunos:**
+
 - Diego Assunção Leite
 - Leonardo de Oliveira Ramos
 
@@ -123,6 +124,8 @@ Exemplo:
 }
 ```
 
+O arquivo de configuração centraliza os caminhos utilizados pelo sistema para leitura dos dados e geração dos resultados.
+
 ---
 
 ## 🐍 Criação do ambiente virtual
@@ -157,7 +160,7 @@ Com o ambiente virtual ativado:
 python -m pip install -r requirements.txt
 ```
 
-Principais bibliotecas:
+Principais bibliotecas utilizadas:
 
 - Pandas;
 - NumPy;
@@ -169,7 +172,7 @@ Principais bibliotecas:
 
 ## ▶️ Execução do sistema
 
-Execute o pipeline principal:
+O comando principal do projeto é:
 
 ```powershell
 python -m src.main
@@ -193,7 +196,9 @@ Durante a execução, o sistema:
 
 O projeto possui um dashboard desenvolvido com Streamlit.
 
-Execute:
+O dashboard é uma funcionalidade complementar para visualização dos resultados do processamento.
+
+Para executá-lo:
 
 ```powershell
 python -m streamlit run src/dashboard.py
@@ -226,7 +231,7 @@ O dashboard apresenta:
 
 ## 🧪 Testes automatizados
 
-Execute:
+Os testes são executados utilizando Pytest:
 
 ```powershell
 python -m pytest
@@ -281,28 +286,15 @@ As categorias são definidas em:
 data/categorias.json
 ```
 
-Categorias utilizadas:
+Categorias previstas na configuração:
 
 - Acesso ao AVA;
 - Instalação de Programas;
-- Configuração Python;
-- Problemas com Senha.
+- Configuração do Python;
+- Senha;
+- Execução de atividades.
 
-Exemplo:
-
-```json
-{
-    "categorias": {
-        "acesso ao ava": "Acesso ao AVA",
-        "acesso ao ambiente virtual": "Acesso ao AVA",
-        "instalação de programas": "Instalação de Programas",
-        "instalacao de programas": "Instalação de Programas",
-        "configuração python": "Configuração Python",
-        "configuracao python": "Configuração Python",
-        "problemas com senha": "Problemas com Senha"
-    }
-}
-```
+O sistema utiliza o arquivo `categorias.json` para reconhecer diferentes formas de escrita e padronizar as categorias durante o processamento.
 
 ---
 
@@ -321,6 +313,8 @@ Os problemas são registrados em:
 ```text
 output/erros.log
 ```
+
+Dessa forma, uma linha inválida não impede o processamento dos demais registros.
 
 ---
 
@@ -421,7 +415,7 @@ Registra os problemas encontrados durante a validação e processamento.
 
 ## 📋 Resultado da execução
 
-Resultado final:
+Resultado final obtido durante a validação do projeto:
 
 ```text
 Registros originais: 13
@@ -706,11 +700,7 @@ nothing to commit, working tree clean
 git push origin main
 ```
 
-Resultado final:
-
-```text
-Everything up-to-date
-```
+Após a sincronização do repositório, o projeto deve estar atualizado no GitHub.
 
 ---
 
