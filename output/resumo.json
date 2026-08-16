@@ -1,33 +1,33 @@
 {
     "resumo": {
         "total_original": 13,
-        "total_processado": 12,
-        "duplicidades_removidas": 1
+        "total_processado": 7,
+        "duplicidades_removidas": 6
     },
     "indicadores": {
-        "tempo_medio_atendimento": 35.55555555555556,
-        "tempo_mediano_atendimento": 35.0,
+        "tempo_medio_atendimento": 37.857142857142854,
+        "tempo_mediano_atendimento": 40.0,
         "tempo_minimo_atendimento": 15.0,
         "tempo_maximo_atendimento": 60.0,
-        "tempo_medio_normalizado_percentual": 7.407407407407408,
+        "tempo_medio_normalizado_percentual": 7.886904761904762,
         "categoria_mais_frequente": "Acesso ao AVA"
     },
     "distribuicao": {
         "por_categoria": {
             "Acesso ao AVA": 3,
-            "Instalação de Programas": 3,
-            "Configuração Python": 3,
-            "Problemas com Senha": 3
+            "Instalação de programas": 2,
+            "Senha": 1,
+            "Configuração do Python": 1
         },
         "por_status": {
-            "Resolvido": 7,
-            "Pendente": 3,
-            "Em Andamento": 2
+            "Resolvido": 4,
+            "Em Andamento": 2,
+            "Pendente": 1
         }
     },
     "qualidade_dados": {
-        "registros_incompletos": 4,
-        "percentual_incompletos": 30.76923076923077,
+        "registros_incompletos": 0,
+        "percentual_incompletos": 0.0,
         "registros_com_problemas": 5,
         "percentual_com_problemas": 38.46153846153847,
         "detalhes_problemas": [

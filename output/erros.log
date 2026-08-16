@@ -2,8 +2,8 @@
 LOG DE PROCESSAMENTO
 ============================================================
 [INFO] Registros originais: 13
-[INFO] Registros processados: 12
-[INFO] Duplicidades removidas: 1
+[INFO] Registros processados: 7
+[INFO] Duplicidades removidas: 6
 [INFO] Registros com problemas: 5
 
 [INFO] Protocolos extraídos do TXT: 13
@@ -16,7 +16,7 @@ LOG DE PROCESSAMENTO
 [WARNING] ATD011 - tempo de atendimento inválido
 [WARNING] ATD012 - tempo de atendimento inválido
 
-[INFO] Registros incompletos após processamento: 4
-[INFO] Percentual de incompletos: 30.77%
+[INFO] Registros incompletos após processamento: 0
+[INFO] Percentual de incompletos: 0.00%
 [INFO] Percentual de registros com problemas: 38.46%
 ============================================================
