@@ -48,33 +48,24 @@ def main():
 
     config = ler_json(caminho_config)
 
-    caminho_csv = (
-        RAIZ / config["arquivos"]["atendimentos"]
-    )
+    caminho_csv_str = config.get("arquivo_atendimentos") or config.get("arquivos", {}).get("atendimentos", "data/atendimentos.csv")
+    caminho_cat_str = config.get("arquivo_categorias") or config.get("arquivos", {}).get("categorias", "data/categorias.json")
+    caminho_obs_str = config.get("arquivo_observacoes") or config.get("arquivos", {}).get("observacoes", "data/observacoes.txt")
+    diretorio_saida_str = config.get("diretorio_saida") or "output"
+    separador_csv = config.get("separador_csv", ";")
 
-    caminho_categorias = (
-        RAIZ / config["arquivos"]["categorias"]
-    )
+    caminho_csv = RAIZ / caminho_csv_str
+    caminho_categorias = RAIZ / caminho_cat_str
+    caminho_observacoes = RAIZ / caminho_obs_str
 
-    caminho_observacoes = (
-        RAIZ / config["arquivos"]["observacoes"]
-    )
+    diretorio_saida = RAIZ / diretorio_saida_str
+    saida_config = config.get("saida", {})
 
-    caminho_saida_csv = (
-        RAIZ / config["saida"]["csv"]
-    )
+    caminho_saida_csv = RAIZ / saida_config["csv"] if "csv" in saida_config else diretorio_saida / "atendimentos_processados.csv"
+    caminho_saida_json = RAIZ / saida_config["json"] if "json" in saida_config else diretorio_saida / "resumo.json"
+    caminho_log = RAIZ / saida_config["log"] if "log" in saida_config else diretorio_saida / "erros.log"
+    caminho_graficos = RAIZ / saida_config["graficos"] if "graficos" in saida_config else diretorio_saida / "graficos"
 
-    caminho_saida_json = (
-        RAIZ / config["saida"]["json"]
-    )
-
-    caminho_log = (
-        RAIZ / config["saida"]["log"]
-    )
-
-    caminho_graficos = (
-        RAIZ / config["saida"]["graficos"]
-    )
 
     # ---------------------------------------------------------
     # 2. Verificar arquivos
@@ -113,7 +104,7 @@ def main():
 
     print("\nLendo dados...")
 
-    df_original = ler_csv(caminho_csv)
+    df_original = ler_csv(caminho_csv, separador=separador_csv)
 
     categorias = ler_json(
         caminho_categorias
