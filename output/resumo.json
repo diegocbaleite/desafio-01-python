@@ -6,6 +6,9 @@
     },
     "indicadores": {
         "tempo_medio_atendimento": 35.55555555555556,
+        "tempo_mediano_atendimento": 35.0,
+        "tempo_minimo_atendimento": 15.0,
+        "tempo_maximo_atendimento": 60.0,
         "categoria_mais_frequente": "Acesso ao AVA"
     },
     "distribuicao": {

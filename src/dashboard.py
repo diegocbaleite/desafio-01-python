@@ -1,9 +1,14 @@
 import json
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+
+# =========================================================
+# Configuração dos caminhos
+# =========================================================
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -23,7 +28,7 @@ st.set_page_config(
 
 
 # =========================================================
-# Carregamento dos dados
+# Funções de carregamento
 # =========================================================
 
 @st.cache_data
@@ -69,7 +74,7 @@ st.caption(
 
 
 # =========================================================
-# Carregar informações
+# Carregar dados
 # =========================================================
 
 try:
@@ -78,13 +83,24 @@ try:
 
 except FileNotFoundError as erro:
     st.error(str(erro))
-    st.info("Execute primeiro: python -m src.main")
+
+    st.info(
+        "Execute primeiro: python -m src.main"
+    )
+
     st.stop()
 
 
+# =========================================================
+# Organizar indicadores
+# =========================================================
+
 resumo = dados["resumo"]
+
 indicadores = dados["indicadores"]
+
 distribuicao = dados["distribuicao"]
+
 qualidade = dados["qualidade_dados"]
 
 
@@ -93,7 +109,9 @@ qualidade = dados["qualidade_dados"]
 # =========================================================
 
 if st.button("🔄 Atualizar dados"):
+
     st.cache_data.clear()
+
     st.rerun()
 
 
@@ -101,32 +119,49 @@ if st.button("🔄 Atualizar dados"):
 # Indicadores principais
 # =========================================================
 
-st.subheader("Indicadores principais")
+st.subheader("📊 Indicadores principais")
 
 col1, col2, col3, col4 = st.columns(4)
 
+
 with col1:
+
     st.metric(
         "Atendimentos",
         resumo["total_processado"],
     )
 
+
 with col2:
+
     st.metric(
         "Resolvidos",
-        distribuicao["por_status"].get("Resolvido", 0),
+        distribuicao["por_status"].get(
+            "Resolvido",
+            0,
+        ),
     )
+
 
 with col3:
+
     st.metric(
         "Pendentes",
-        distribuicao["por_status"].get("Pendente", 0),
+        distribuicao["por_status"].get(
+            "Pendente",
+            0,
+        ),
     )
 
+
 with col4:
+
     st.metric(
         "Em andamento",
-        distribuicao["por_status"].get("Em Andamento", 0),
+        distribuicao["por_status"].get(
+            "Em Andamento",
+            0,
+        ),
     )
 
 
@@ -137,23 +172,65 @@ st.divider()
 # Indicadores de desempenho
 # =========================================================
 
-st.subheader("Indicadores de desempenho")
+st.subheader("⏱️ Indicadores de desempenho")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
+
 
 with col1:
+
     st.metric(
         "Tempo médio",
         f"{indicadores['tempo_medio_atendimento']:.2f} min",
     )
 
+
 with col2:
+
+    st.metric(
+        "Tempo mediano",
+        f"{indicadores['tempo_mediano_atendimento']:.2f} min",
+    )
+
+
+with col3:
+
+    st.metric(
+        "Tempo mínimo",
+        f"{indicadores['tempo_minimo_atendimento']:.2f} min",
+    )
+
+
+with col4:
+
+    st.metric(
+        "Tempo máximo",
+        f"{indicadores['tempo_maximo_atendimento']:.2f} min",
+    )
+
+
+st.divider()
+
+
+# =========================================================
+# Outros indicadores
+# =========================================================
+
+st.subheader("📌 Outros indicadores")
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
     st.metric(
         "Categoria mais frequente",
         indicadores["categoria_mais_frequente"],
     )
 
-with col3:
+
+with col2:
+
     st.metric(
         "Duplicidades removidas",
         resumo["duplicidades_removidas"],
@@ -171,22 +248,34 @@ st.subheader("🔎 Filtros")
 
 col1, col2 = st.columns(2)
 
+
 categorias_disponiveis = sorted(
-    df["categoria"].dropna().unique().tolist()
+    df["categoria"]
+    .dropna()
+    .unique()
+    .tolist()
 )
+
 
 status_disponiveis = sorted(
-    df["status"].dropna().unique().tolist()
+    df["status"]
+    .dropna()
+    .unique()
+    .tolist()
 )
 
+
 with col1:
+
     categorias_selecionadas = st.multiselect(
         "Filtrar por categoria",
         options=categorias_disponiveis,
         default=categorias_disponiveis,
     )
 
+
 with col2:
+
     status_selecionados = st.multiselect(
         "Filtrar por status",
         options=status_disponiveis,
@@ -194,15 +283,19 @@ with col2:
     )
 
 
+# =========================================================
+# Aplicar filtros
+# =========================================================
+
 df_filtrado = df[
-    df["categoria"].isin(categorias_selecionadas)
-    & df["status"].isin(status_selecionados)
+    df["categoria"].isin(
+        categorias_selecionadas
+    )
+    & df["status"].isin(
+        status_selecionados
+    )
 ].copy()
 
-
-# =========================================================
-# Resultado dos filtros
-# =========================================================
 
 st.write(
     f"**Registros encontrados:** {len(df_filtrado)}"
@@ -210,10 +303,11 @@ st.write(
 
 
 # =========================================================
-# Exportação dos dados filtrados
+# Exportação
 # =========================================================
 
 st.subheader("📥 Exportação")
+
 
 if df_filtrado.empty:
 
@@ -242,15 +336,17 @@ st.divider()
 
 
 # =========================================================
-# Tabela de atendimentos
+# Tabela
 # =========================================================
 
 st.subheader("📋 Atendimentos")
 
+
 if df_filtrado.empty:
 
     st.warning(
-        "Nenhum atendimento encontrado com os filtros selecionados."
+        "Nenhum atendimento encontrado "
+        "com os filtros selecionados."
     )
 
 else:
@@ -276,13 +372,18 @@ st.divider()
 
 
 # =========================================================
-# Gráficos
+# Visualização
 # =========================================================
 
-st.subheader("📈 Distribuição dos atendimentos")
+st.subheader("📈 Visualização dos atendimentos")
+
 
 col1, col2 = st.columns(2)
 
+
+# =========================================================
+# Gráfico por categoria
+# =========================================================
 
 with col1:
 
@@ -290,19 +391,23 @@ with col1:
 
     if df_filtrado.empty:
 
-        st.info("Não há dados para exibir.")
+        st.info(
+            "Não há dados para exibir."
+        )
 
     else:
 
         categorias = (
             df_filtrado["categoria"]
             .value_counts()
-            .rename_axis("Categoria")
-            .to_frame("Quantidade")
         )
 
         st.bar_chart(categorias)
 
+
+# =========================================================
+# Gráfico por status
+# =========================================================
 
 with col2:
 
@@ -310,18 +415,83 @@ with col2:
 
     if df_filtrado.empty:
 
-        st.info("Não há dados para exibir.")
+        st.info(
+            "Não há dados para exibir."
+        )
 
     else:
 
         status = (
             df_filtrado["status"]
             .value_counts()
-            .rename_axis("Status")
-            .to_frame("Quantidade")
         )
 
         st.bar_chart(status)
+
+
+# =========================================================
+# Distribuição dos tempos
+# =========================================================
+
+st.write(
+    "### ⏱️ Distribuição dos tempos de atendimento"
+)
+
+
+if df_filtrado.empty:
+
+    st.info(
+        "Não há dados para exibir."
+    )
+
+else:
+
+    tempos = pd.to_numeric(
+        df_filtrado["tempo_atendimento"],
+        errors="coerce",
+    ).dropna()
+
+
+    if tempos.empty:
+
+        st.info(
+            "Não existem tempos válidos para exibir."
+        )
+
+    else:
+
+        fig, ax = plt.subplots(
+            figsize=(10, 5)
+        )
+
+        ax.hist(
+            tempos,
+            bins=6,
+        )
+
+        ax.set_title(
+            "Distribuição dos tempos de atendimento"
+        )
+
+        ax.set_xlabel(
+            "Tempo de atendimento (minutos)"
+        )
+
+        ax.set_ylabel(
+            "Quantidade de atendimentos"
+        )
+
+        ax.grid(
+            axis="y",
+            alpha=0.3,
+        )
+
+        st.pyplot(
+            fig,
+            clear_figure=True,
+        )
+
+        plt.close(fig)
 
 
 st.divider()
@@ -335,12 +505,14 @@ st.subheader("⚠️ Qualidade dos dados")
 
 col1, col2, col3, col4 = st.columns(4)
 
+
 with col1:
 
     st.metric(
         "Registros incompletos",
         qualidade["registros_incompletos"],
     )
+
 
 with col2:
 
@@ -349,12 +521,17 @@ with col2:
         f"{qualidade['percentual_incompletos']:.2f}%",
     )
 
+
 with col3:
 
     st.metric(
         "Registros com problemas",
-        qualidade.get("registros_com_problemas", 0),
+        qualidade.get(
+            "registros_com_problemas",
+            0,
+        ),
     )
+
 
 with col4:
 
@@ -373,9 +550,12 @@ detalhes = qualidade.get(
     [],
 )
 
+
 if detalhes:
 
-    st.write("### Registros com problemas")
+    st.write(
+        "### Registros com problemas"
+    )
 
     problemas = []
 
@@ -384,7 +564,9 @@ if detalhes:
         problemas.append(
             {
                 "Protocolo": item["protocolo"],
-                "Problemas": ", ".join(item["problemas"]),
+                "Problemas": ", ".join(
+                    item["problemas"]
+                ),
             }
         )
 
@@ -401,9 +583,13 @@ if detalhes:
 
 st.divider()
 
-st.subheader("ℹ️ Informações do processamento")
+st.subheader(
+    "ℹ️ Informações do processamento"
+)
+
 
 col1, col2, col3 = st.columns(3)
+
 
 with col1:
 
@@ -412,12 +598,14 @@ with col1:
         resumo["total_original"],
     )
 
+
 with col2:
 
     st.metric(
         "Registros processados",
         resumo["total_processado"],
     )
+
 
 with col3:
 
@@ -432,6 +620,7 @@ with col3:
 # =========================================================
 
 st.caption(
-    "Dados carregados de output/resumo.json e "
+    "Dados carregados de "
+    "output/resumo.json e "
     "output/atendimentos_processados.csv."
 )

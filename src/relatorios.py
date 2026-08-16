@@ -59,8 +59,29 @@ def gerar_resumo(indicadores: dict) -> str:
         "tempo_medio_atendimento"
     ]
 
+    tempo_mediano = dados_indicadores[
+        "tempo_mediano_atendimento"
+    ]
+
+    tempo_minimo = dados_indicadores[
+        "tempo_minimo_atendimento"
+    ]
+
+    tempo_maximo = dados_indicadores[
+        "tempo_maximo_atendimento"
+    ]
+
     if pd.isna(tempo_medio):
         tempo_medio = 0.0
+
+    if pd.isna(tempo_mediano):
+        tempo_mediano = 0.0
+
+    if pd.isna(tempo_minimo):
+        tempo_minimo = 0.0
+
+    if pd.isna(tempo_maximo):
+        tempo_maximo = 0.0
 
     linhas = [
         "=" * 60,
@@ -100,7 +121,12 @@ def gerar_resumo(indicadores: dict) -> str:
     linhas.extend(
         [
             "",
-            f"Tempo médio: {tempo_medio:.2f} minutos",
+            "Indicadores de tempo:",
+            f"- Tempo médio: {tempo_medio:.2f} minutos",
+            f"- Tempo mediano: {tempo_mediano:.2f} minutos",
+            f"- Tempo mínimo: {tempo_minimo:.2f} minutos",
+            f"- Tempo máximo: {tempo_maximo:.2f} minutos",
+            "",
             (
                 "Categoria mais frequente: "
                 f"{dados_indicadores['categoria_mais_frequente']}"

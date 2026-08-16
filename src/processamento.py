@@ -68,7 +68,10 @@ def converter_data(valor):
 
     for formato in formatos:
         try:
-            return pd.to_datetime(valor, format=formato)
+            return pd.to_datetime(
+                valor,
+                format=formato,
+            )
         except ValueError:
             continue
 
@@ -119,7 +122,10 @@ def processar_dados(
 ) -> pd.DataFrame:
     """Executa todas as etapas de tratamento dos dados."""
     df = padronizar_textos(df)
-    df = padronizar_categorias(df, configuracao_categorias)
+    df = padronizar_categorias(
+        df,
+        configuracao_categorias,
+    )
     df = padronizar_datas(df)
     df = tratar_tempos(df)
     df = remover_duplicidades(df)
@@ -151,6 +157,9 @@ def calcular_indicadores(
     )
 
     tempo_medio = df["tempo_atendimento"].mean()
+    tempo_mediano = df["tempo_atendimento"].median()
+    tempo_minimo = df["tempo_atendimento"].min()
+    tempo_maximo = df["tempo_atendimento"].max()
 
     if quantidade_por_categoria:
         categoria_mais_frequente = max(
@@ -166,7 +175,9 @@ def calcular_indicadores(
         | df["tempo_atendimento"].isna()
     ]
 
-    quantidade_incompletos = len(registros_incompletos)
+    quantidade_incompletos = len(
+        registros_incompletos
+    )
 
     duplicidades_removidas = (
         total_original - total_processado
@@ -183,7 +194,9 @@ def calcular_indicadores(
         "resumo": {
             "total_original": total_original,
             "total_processado": total_processado,
-            "duplicidades_removidas": duplicidades_removidas,
+            "duplicidades_removidas": (
+                duplicidades_removidas
+            ),
         },
         "indicadores": {
             "tempo_medio_atendimento": (
@@ -191,14 +204,37 @@ def calcular_indicadores(
                 if not pd.isna(tempo_medio)
                 else 0.0
             ),
-            "categoria_mais_frequente": categoria_mais_frequente,
+            "tempo_mediano_atendimento": (
+                float(tempo_mediano)
+                if not pd.isna(tempo_mediano)
+                else 0.0
+            ),
+            "tempo_minimo_atendimento": (
+                float(tempo_minimo)
+                if not pd.isna(tempo_minimo)
+                else 0.0
+            ),
+            "tempo_maximo_atendimento": (
+                float(tempo_maximo)
+                if not pd.isna(tempo_maximo)
+                else 0.0
+            ),
+            "categoria_mais_frequente": (
+                categoria_mais_frequente
+            ),
         },
         "distribuicao": {
-            "por_categoria": quantidade_por_categoria,
+            "por_categoria": (
+                quantidade_por_categoria
+            ),
             "por_status": quantidade_por_status,
         },
         "qualidade_dados": {
-            "registros_incompletos": quantidade_incompletos,
-            "percentual_incompletos": percentual_incompletos,
+            "registros_incompletos": (
+                quantidade_incompletos
+            ),
+            "percentual_incompletos": (
+                percentual_incompletos
+            ),
         },
     }
